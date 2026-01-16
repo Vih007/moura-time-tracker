@@ -1,0 +1,37 @@
+/* src/App.css */
+:root {
+    --moura-blue: #004B8D;
+    --moura-dark-blue: #003366;
+    --moura-yellow: #FFC700;
+    --moura-yellow-hover: #E6B200;
+    --text-white: #ffffff;
+    --text-gray: #cbd5e1;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --success-green: #10b981;
+    --warning-orange: #f59e0b;
+    --extra-purple: #8b5cf6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #f0f2f5;
+    overflow: hidden;
+}
+
+/* Utilitários Globais */
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
