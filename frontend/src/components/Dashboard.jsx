@@ -3,12 +3,12 @@ import Chart from 'react-apexcharts';
 import {
     Play, Square, History,
     LogOut, Utensils, Coffee, Briefcase, Stethoscope, MoreHorizontal, ArrowRight, Loader2,
-    Clock, CheckCircle2, AlertTriangle, TrendingUp // Novos ícones
+    CheckCircle2, AlertTriangle, TrendingUp
 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import { formatSecondsToTime, formatMinutesToLabel, calculateSecondsSince, formatTimeBalance } from '../utils/timeUtils';
 
-// --- HELPER: Formatar Horas Decimais para o Gráfico ---
+// --- HELPER: Formatar Horas Decimais ---
 const formatDecimalToTime = (val) => {
     if (!val) return "00:00";
     const hours = Math.floor(val);
@@ -17,31 +17,26 @@ const formatDecimalToTime = (val) => {
 };
 
 // ==========================================
-// 1. COMPONENTE DE ITEM DO HISTÓRICO (NOVO)
+// 1. COMPONENTE DE ITEM DO HISTÓRICO
 // ==========================================
-const HistoryItem = memo(({ record, SHIFT_CONFIG }) => {
+const HistoryItem = memo(({ record, dailyTotalSeconds, isLatestOfDay, SHIFT_CONFIG }) => {
     const isClosed = !!record.checkout_time;
 
-    // Se estiver fechado, usa a duração salva. Se aberto, calcula a inicial baseada no horário de checkin.
+    // Se aberto, calcula dinamicamente. Se fechado, usa o estático.
     const [currentDuration, setCurrentDuration] = useState(() => {
         if (isClosed) return record.duration_seconds || 0;
         return calculateSecondsSince(record.date, record.checkin_time);
     });
 
-    // --- TIMER INDIVIDUAL PARA ITENS "EM ANDAMENTO" ---
     useEffect(() => {
-        if (isClosed) return; // Não roda timer se já fechou
-
+        if (isClosed) return;
         const interval = setInterval(() => {
-            // Recalcula a cada segundo para garantir sincronia
-            const seconds = calculateSecondsSince(record.date, record.checkin_time);
-            setCurrentDuration(seconds);
+            setCurrentDuration(calculateSecondsSince(record.date, record.checkin_time));
         }, 1000);
-
         return () => clearInterval(interval);
     }, [isClosed, record.date, record.checkin_time]);
 
-    // --- CONFIGURAÇÃO DE ÍCONES ---
+    // Configuração de ícones e cores
     const getReasonConfig = (type) => {
         const configs = {
             lunch_start: { icon: Utensils, color: '#f59e0b', bg: '#fffbeb' },
@@ -54,9 +49,9 @@ const HistoryItem = memo(({ record, SHIFT_CONFIG }) => {
         return configs[type] || configs.end_shift;
     };
 
-    // --- LÓGICA DE STATUS (REQUISITO DO USUÁRIO) ---
+    // --- NOVA LÓGICA DE STATUS ---
     const getStatusInfo = () => {
-        // 1. Em Andamento
+        // 1. Se o turno está aberto, mostra "Em andamento"
         if (!isClosed) {
             return {
                 label: 'Em Andamento',
@@ -65,40 +60,28 @@ const HistoryItem = memo(({ record, SHIFT_CONFIG }) => {
             };
         }
 
-        // 2. Se NÃO for fim de expediente (Almoço, Médico, etc), não mostra status de saldo
-        if (record.reason_id !== 'end_shift') {
-            return null;
-        }
+        // 2. Se não for "Fim de Expediente", não mostra saldo
+        if (record.reason_id !== 'end_shift') return null;
 
-        // 3. Fim de Expediente: Calcula Saldo
+        // 3. Só mostra o saldo acumulado se for o ÚLTIMO registro daquele dia
+        // Isso evita que cada pequena saída mostre "Saída Antecipada" repetidamente.
+        if (!isLatestOfDay) return null;
+
+        // 4. Cálculo baseado no TOTAL DO DIA (dailyTotalSeconds)
+        // Se houver um turno em aberto no dia, somamos o tempo dele também
+        const totalConsidered = dailyTotalSeconds + (isClosed ? 0 : currentDuration);
+
         const TARGET = SHIFT_CONFIG.seconds;
-        const diff = currentDuration - TARGET;
-        const tolerance = 300; // 5 minutos de tolerância
+        const diff = totalConsidered - TARGET;
+        const tolerance = 300; // 5 minutos
 
-        // Jornada Normal (dentro da tolerância de +/- 5 min)
         if (Math.abs(diff) <= tolerance) {
-            return {
-                label: 'Jornada Normal',
-                cssClass: 'status-perfect',
-                icon: <CheckCircle2 size={12}/>
-            };
+            return { label: 'Jornada Normal', cssClass: 'status-perfect', icon: <CheckCircle2 size={12}/> };
         }
-
-        // Hora Extra
         if (diff > tolerance) {
-            return {
-                label: `Hora Extra ${formatTimeBalance(currentDuration, TARGET)}`,
-                cssClass: 'status-extra',
-                icon: <TrendingUp size={12}/>
-            };
+            return { label: `Hora Extra ${formatTimeBalance(totalConsidered, TARGET)}`, cssClass: 'status-extra', icon: <TrendingUp size={12}/> };
         }
-
-        // Saída Antecipada (Incompleto)
-        return {
-            label: `Saída Antecipada ${formatTimeBalance(currentDuration, TARGET)}`,
-            cssClass: 'status-incomplete',
-            icon: <AlertTriangle size={12}/>
-        };
+        return { label: `Saldo: ${formatTimeBalance(totalConsidered, TARGET)}`, cssClass: 'status-incomplete', icon: <AlertTriangle size={12}/> };
     };
 
     const config = getReasonConfig(record.reason_id);
@@ -127,7 +110,6 @@ const HistoryItem = memo(({ record, SHIFT_CONFIG }) => {
             </div>
 
             <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end'}}>
-                {/* O contador dinâmico aparece aqui */}
                 <span className={`history-duration ${!isClosed ? 'active-timer-text' : ''}`}>
                     {formatSecondsToTime(currentDuration)}
                 </span>
@@ -143,10 +125,10 @@ const HistoryItem = memo(({ record, SHIFT_CONFIG }) => {
 });
 
 // ==========================================
-// 2. COMPONENTE DE GRÁFICO (MEMOIZED)
+// 2. COMPONENTE DE GRÁFICO (MANTIDO)
 // ==========================================
 const WeeklyChart = memo(({ historyData }) => {
-    // ... (Mantenha o código do WeeklyChart igual ao anterior)
+    // ... (Código do gráfico permanece idêntico ao anterior)
     const { chartCategories, chartSeriesData } = useMemo(() => {
         const days = [];
         const today = new Date();
@@ -180,14 +162,8 @@ const WeeklyChart = memo(({ historyData }) => {
         plotOptions: { bar: { borderRadius: 6, columnWidth: '55%', distributed: true } },
         dataLabels: { enabled: false },
         legend: { show: false },
-        xaxis: {
-            categories: chartCategories,
-            labels: { style: { colors: '#64748b', fontSize: '12px' } },
-            axisBorder: { show: false }, axisTicks: { show: false }
-        },
-        yaxis: {
-            labels: { style: { colors: '#64748b' }, formatter: (val) => formatDecimalToTime(val) }
-        },
+        xaxis: { categories: chartCategories, labels: { style: { colors: '#64748b', fontSize: '12px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
+        yaxis: { labels: { style: { colors: '#64748b' }, formatter: (val) => formatDecimalToTime(val) } },
         tooltip: { y: { formatter: (val) => formatDecimalToTime(val) + "h" } },
         grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
         colors: Array(7).fill('#004B8D')
@@ -210,11 +186,40 @@ const WeeklyChart = memo(({ historyData }) => {
 }, (prev, next) => prev.historyData === next.historyData);
 
 // ==========================================
-// 3. LISTA DE HISTÓRICO (WRAPPER)
+// 3. LISTA DE HISTÓRICO (CORRIGIDA)
 // ==========================================
 const RecentHistory = memo(({ historyData, SHIFT_CONFIG }) => {
-    // Apenas pega os 5 primeiros
-    const recentRecords = historyData.slice(0, 5);
+
+    // 1. AUMENTAMOS O LIMITE DE EXIBIÇÃO
+    // De slice(0, 5) para slice(0, 30) para garantir que o usuário veja o dia todo
+    const recentRecords = historyData.slice(0, 30);
+
+    // 2. CALCULAR O TOTAL ACUMULADO POR DIA
+    const dailyTotalsMap = useMemo(() => {
+        const map = {};
+        historyData.forEach(record => {
+            if (!map[record.date]) map[record.date] = 0;
+            if (record.duration_seconds) {
+                map[record.date] += record.duration_seconds;
+            }
+        });
+        return map;
+    }, [historyData]);
+
+    // 3. IDENTIFICAR O "ÚLTIMO" REGISTRO DE CADA DIA
+    // Como a lista vem ordenada por DATA DESC, o primeiro registro que encontramos de uma data X
+    // é o último cronologicamente. Vamos marcar isso.
+    const recordsWithMeta = useMemo(() => {
+        const processedDates = new Set();
+
+        return recentRecords.map(record => {
+            const isLatestOfDay = !processedDates.has(record.date);
+            if (isLatestOfDay) {
+                processedDates.add(record.date);
+            }
+            return { ...record, isLatestOfDay };
+        });
+    }, [recentRecords]);
 
     return (
         <div className="history-card">
@@ -224,13 +229,16 @@ const RecentHistory = memo(({ historyData, SHIFT_CONFIG }) => {
             </div>
 
             <div className="history-list">
-                {recentRecords.length === 0 ? (
+                {recordsWithMeta.length === 0 ? (
                     <p style={{textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem', padding: '20px'}}>Nenhum registro recente.</p>
                 ) : (
-                    recentRecords.map((record) => (
+                    recordsWithMeta.map((record) => (
                         <HistoryItem
                             key={record.id}
                             record={record}
+                            // Passa o total SOMADO do dia para o cálculo correto
+                            dailyTotalSeconds={dailyTotalsMap[record.date] || 0}
+                            isLatestOfDay={record.isLatestOfDay}
                             SHIFT_CONFIG={SHIFT_CONFIG}
                         />
                     ))
@@ -241,7 +249,7 @@ const RecentHistory = memo(({ historyData, SHIFT_CONFIG }) => {
 });
 
 // ==========================================
-// 4. COMPONENTE DE TIMER PRINCIPAL
+// 4. COMPONENTE DE TIMER PRINCIPAL (MANTIDO)
 // ==========================================
 const PunchClock = ({ workStatus, elapsedTime, onCheckIn, onRequestCheckOut, isLoading }) => {
     return (
@@ -264,7 +272,7 @@ const PunchClock = ({ workStatus, elapsedTime, onCheckIn, onRequestCheckOut, isL
 };
 
 // ==========================================
-// 5. DASHBOARD PRINCIPAL
+// 5. DASHBOARD PRINCIPAL (MANTIDO)
 // ==========================================
 const Dashboard = ({
                        userName, workStatus, elapsedTime, onCheckIn, onCheckOut,
