@@ -136,7 +136,7 @@ public class WorkService {
                 dailyTotals.put(date, dailyTotals.getOrDefault(date, 0.0) + (entry.getDurationSeconds() / 3600.0));
             }
         }
-        // ... (restante da lógica de formatação igual)
+
         List<String> cats = new ArrayList<>();
         List<Double> sers = new ArrayList<>();
         dailyTotals.forEach((k, v) -> {

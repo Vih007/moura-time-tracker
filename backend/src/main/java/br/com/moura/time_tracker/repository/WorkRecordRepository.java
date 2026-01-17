@@ -30,4 +30,19 @@ public interface WorkRecordRepository extends JpaRepository<WorkRecord, Long> {
 
     // --- GRÁFICOS (Adaptado para checkInTime) ---
     List<WorkRecord> findAllByCheckInTimeBetweenOrderByCheckInTimeAsc(LocalDateTime start, LocalDateTime end);
+
+    // 1. Para o Relatório Administrativo
+    @Query("SELECT w FROM WorkRecord w WHERE w.employee.id = :employeeId " +
+           "AND w.checkInTime BETWEEN :start AND :end " +
+           "ORDER BY w.checkInTime DESC")
+    List<WorkRecord> findReportData(@Param("employeeId") Long employeeId,
+                                    @Param("start") LocalDateTime start,
+                                    @Param("end") LocalDateTime end);
+
+    // 2. Para o Dashboard
+    @Query(value = """
+        SELECT DISTINCT ON (employee_id) * FROM work_records
+        ORDER BY employee_id, checkin_time DESC
+    """, nativeQuery = true)
+    List<WorkRecord> findLatestRecordPerEmployee();
 }

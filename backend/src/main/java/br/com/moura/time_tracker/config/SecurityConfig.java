@@ -34,6 +34,9 @@ public class SecurityConfig {
                         // 3. EMPREGADOS (Listagem e Escala)
                         .requestMatchers("/api/employees/**").permitAll()
 
+                        // 4. ADMIN
+                        .requestMatchers("/admin/**").permitAll()
+
                         // Qualquer outra coisa precisa de autenticação
                         .anyRequest().authenticated()
                 )
