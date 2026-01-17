@@ -1,28 +1,28 @@
 /* --- MODAL DE CONFIRMAÇÃO --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000; /* Fica acima de tudo */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease-out;
-}
-
 .modal-content {
     background: white;
     width: 90%;
-    max-width: 400px;
-    border-radius: 20px;
+    max-width: 500px;
+    border-radius: 24px;
     padding: 2rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     text-align: center;
     animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.modal-desc {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
 }
 
 .modal-icon-wrapper {
@@ -37,18 +37,7 @@
     margin: 0 auto 1rem auto;
 }
 
-.modal-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-}
 
-.modal-desc {
-    color: #6b7280;
-    font-size: 0.9rem;
-    margin-bottom: 2rem;
-}
 
 .modal-actions {
     display: flex;
@@ -82,3 +71,109 @@
 /* Animações do Modal */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* --- GRID DE MOTIVOS --- */
+.reason-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* AGORA SÃO 3 COLUNAS PARA CABER TUDO */
+    gap: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.reason-card {
+    background: #f8fafc;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 1rem 0.5rem; /* Padding lateral menor */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #64748b;
+    min-height: 100px;
+}
+
+.reason-card:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+}
+
+.reason-card.selected {
+    background: rgba(0, 75, 141, 0.05);
+    border-color: var(--moura-blue);
+    color: var(--moura-blue);
+    box-shadow: 0 4px 12px rgba(0, 75, 141, 0.15);
+}
+
+.reason-label {
+    font-weight: 600;
+    font-size: 0.8rem; /* Fonte um pouco menor */
+    line-height: 1.2;
+}
+
+/* --- CAMPO DE TEXTO (DETALHES) --- */
+.details-input-wrapper {
+    margin-bottom: 1.5rem;
+    animation: slideDown 0.3s ease-out;
+    text-align: left;
+}
+
+.details-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+    margin-left: 4px;
+}
+
+.details-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.details-textarea:focus {
+    border-color: var(--moura-blue);
+    box-shadow: 0 0 0 3px rgba(0, 75, 141, 0.1);
+}
+
+/* --- AÇÕES --- */
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: auto;
+}
+
+.btn-modal {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 1rem;
+}
+
+.btn-cancel { background-color: #f1f5f9; color: #64748b; }
+.btn-cancel:hover { background-color: #e2e8f0; }
+
+.btn-confirm-danger { background-color: var(--moura-blue); color: white; }
+.btn-confirm-danger:hover { background-color: #003366; transform: translateY(-1px); }
+.btn-confirm-danger:disabled { opacity: 0.5; cursor: not-allowed; transform: none; background-color: #94a3b8; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }

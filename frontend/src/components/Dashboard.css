@@ -164,3 +164,158 @@
     color: #475569;
     font-size: 1rem;
 }
+
+.modal-select-group {
+    text-align: left;
+    margin-bottom: 2rem;
+}
+
+.modal-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+    margin-left: 4px;
+}
+
+.modal-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+}
+
+.modal-select:focus {
+    border-color: var(--moura-blue);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(0, 75, 141, 0.1);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 480px;
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.modal-desc {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+/* --- GRID DE MOTIVOS --- */
+.reason-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 colunas */
+    gap: 12px;
+    margin-bottom: 2rem;
+}
+
+.reason-card {
+    background: #f8fafc;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+}
+
+.reason-card:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+}
+
+/* Estado Selecionado */
+.reason-card.selected {
+    background: rgba(0, 75, 141, 0.05);
+    border-color: var(--moura-blue);
+    color: var(--moura-blue);
+    box-shadow: 0 4px 12px rgba(0, 75, 141, 0.15);
+}
+
+.reason-icon {
+    margin-bottom: 4px;
+}
+
+.reason-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* --- BOTÕES DE AÇÃO --- */
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-modal {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 1rem;
+}
+
+.btn-cancel {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+.btn-cancel:hover { background-color: #e2e8f0; }
+
+.btn-confirm-danger {
+    background-color: var(--moura-blue);
+    color: white;
+}
+.btn-confirm-danger:hover { background-color: #003366; transform: translateY(-1px); }
+.btn-confirm-danger:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Animações */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }

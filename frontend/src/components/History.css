@@ -1,0 +1,155 @@
+.history-page-container {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.history-grid-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr; /* Coluna fixa para calendário, resto para lista */
+    gap: 2rem;
+    align-items: start;
+}
+
+/* Coluna 1: Calendário */
+.calendar-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.monthly-summary {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.monthly-summary h4 {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+/* Coluna 2: Timeline */
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px 20px 0 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.day-header h3 {
+    text-transform: capitalize;
+    color: var(--moura-dark-blue);
+    font-size: 1.25rem;
+}
+
+.day-total-badge {
+    background: #f0f9ff;
+    color: var(--moura-blue);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.day-timeline-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 0 0 20px 20px;
+    min-height: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+/* Timeline Vertical Styling */
+.timeline-row {
+    display: flex;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.time-col {
+    font-weight: 700;
+    color: #64748b;
+    width: 50px;
+    text-align: right;
+    padding-top: 2px;
+}
+
+.timeline-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 20px;
+}
+
+.dot {
+    width: 14px;
+    height: 14px;
+    background: var(--moura-blue);
+    border-radius: 50%;
+    border: 3px solid #e0f2fe;
+}
+
+.line {
+    flex: 1;
+    width: 2px;
+    background: #e2e8f0;
+    margin-top: 4px;
+}
+
+.timeline-card {
+    flex: 1;
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 12px;
+    border-left: 4px solid #cbd5e1;
+    transition: transform 0.2s;
+}
+
+.timeline-card:hover {
+    transform: translateX(5px);
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.timeline-card.type-work { border-left-color: var(--moura-blue); }
+.timeline-card.type-break { border-left-color: var(--moura-yellow); }
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.card-header h4 { font-weight: 700; color: #334155; }
+.timeline-card p { font-size: 0.9rem; color: #64748b; }
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.empty-icon {
+    background: #f1f5f9;
+    padding: 1.5rem;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+}

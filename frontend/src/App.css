@@ -35,3 +35,77 @@ body, html {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+/* --- CUSTOMIZAÇÃO DO REACT-CALENDAR --- */
+.react-calendar {
+    width: 100%;
+    background: white;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.125em;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.react-calendar__navigation button {
+    color: var(--moura-blue);
+    min-width: 44px;
+    background: none;
+    font-size: 16px;
+    margin-top: 8px;
+    font-weight: 700;
+}
+
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+    background-color: #f1f5f9;
+    border-radius: 8px;
+}
+
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 0.75em;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+
+.react-calendar__tile {
+    max-width: 100%;
+    padding: 10px 6.6667px;
+    background: none;
+    text-align: center;
+    line-height: 16px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    color: #334155;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+    background-color: #f1f5f9;
+    color: var(--moura-blue);
+}
+
+/* Dia Selecionado (Azul Moura) */
+.react-calendar__tile--active {
+    background: var(--moura-blue) !important;
+    color: white !important;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(0, 75, 141, 0.3);
+}
+
+/* Dia Atual (Amarelo Moura) */
+.react-calendar__tile--now {
+    background: rgba(255, 199, 0, 0.2) !important;
+    color: #b48d00 !important;
+    font-weight: 700;
+}
+
+.react-calendar__tile--active.react-calendar__tile--now {
+    background: var(--moura-blue) !important;
+    color: white !important;
+}

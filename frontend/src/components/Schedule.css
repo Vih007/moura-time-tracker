@@ -1,0 +1,180 @@
+/* Container da Escala */
+.schedule-container {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 1rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.date-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.date-center:hover h3 {
+    color: var(--moura-blue);
+}
+
+/* O input de data fica invisível sobre o texto, permitindo o clique em qualquer lugar */
+.date-input-hidden {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.calendar-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.2rem;
+}
+
+/* Ícone de calendário pequeno ao lado do ano/mês */
+.calendar-icon-small {
+    color: var(--moura-yellow);
+    width: 16px;
+    height: 16px;
+}
+
+.date-nav-btn {
+    background: #f1f5f9;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.date-nav-btn:hover {
+    background: #e2e8f0;
+    color: var(--moura-blue);
+}
+
+.current-date-display {
+    text-align: center;
+}
+
+.current-date-display h3 {
+    color: var(--moura-dark-blue);
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+}
+
+.current-date-display span {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- LINHA DO TEMPO (TIMELINE) --- */
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+/* Linha vertical contínua */
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 15px; /* Posição da linha */
+    width: 2px;
+    background: #e2e8f0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+/* Bolinha (Nó) da timeline */
+.timeline-dot {
+    position: absolute;
+    left: -2.35rem;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #cbd5e1;
+    z-index: 1;
+    transition: all 0.3s;
+}
+
+.timeline-item:hover .timeline-dot {
+    border-color: var(--moura-yellow);
+    transform: scale(1.2);
+}
+
+/* Status Colors para as bolinhas */
+.timeline-dot.completed { border-color: #10b981; background: #10b981; } /* Verde */
+.timeline-dot.current { border-color: var(--moura-yellow); background: var(--moura-yellow); box-shadow: 0 0 0 4px rgba(255, 199, 0, 0.2); }
+.timeline-dot.future { border-color: #cbd5e1; }
+
+/* Cartão do Evento */
+.timeline-content {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid transparent;
+    transition: transform 0.2s;
+}
+
+.timeline-item:hover .timeline-content {
+    transform: translateX(5px);
+}
+
+.timeline-content.type-work { border-left-color: var(--moura-blue); }
+.timeline-content.type-break { border-left-color: #f59e0b; }
+.timeline-content.type-meeting { border-left-color: #8b5cf6; }
+
+.time-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.event-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.event-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
