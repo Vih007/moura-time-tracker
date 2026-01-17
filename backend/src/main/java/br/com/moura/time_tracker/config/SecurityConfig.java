@@ -25,6 +25,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Habilita o CORS configurado abaixo
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/").permitAll()
+
                         // 1. LOGIN (Mantido)
                         .requestMatchers("/api/auth/**").permitAll()
 
@@ -37,7 +39,6 @@ public class SecurityConfig {
                         // 4. ADMIN
                         .requestMatchers("/admin/**").permitAll()
 
-                        // Qualquer outra coisa precisa de autenticação
                         .anyRequest().authenticated()
                 )
                 .build();
