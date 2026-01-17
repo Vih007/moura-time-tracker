@@ -1,139 +1,241 @@
+/* Layout Principal */
 .history-page-container {
+    padding: 1rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
     animation: fadeIn 0.4s ease-out;
 }
 
 .history-grid-layout {
     display: grid;
-    grid-template-columns: 350px 1fr; /* Coluna fixa para calendário, resto para lista */
+    grid-template-columns: 350px 1fr;
     gap: 2rem;
     align-items: start;
 }
 
-/* Coluna 1: Calendário */
+/* --- CALENDÁRIO --- */
+.calendar-column {
+    display: flex;
+    flex-direction: column;
+}
+
 .calendar-card {
     background: white;
     border-radius: 20px;
     padding: 1.5rem;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
 }
 
+.custom-calendar {
+    width: 100% !important;
+    border: none !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* React Calendar Overrides */
+.react-calendar__tile {
+    height: 45px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.react-calendar__tile--active {
+    background: #004B8D !important;
+    color: white !important;
+}
+.react-calendar__tile--now {
+    background: #e0f2fe;
+    color: #004B8D;
+}
+.react-calendar__navigation button {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #004B8D;
+}
+
+/* Resumo Mensal */
 .monthly-summary {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid #f1f5f9;
 }
-
 .monthly-summary h4 {
     font-size: 0.9rem;
-    color: #64748b;
+    text-transform: uppercase;
+    color: #94a3b8;
     margin-bottom: 1rem;
+    letter-spacing: 0.5px;
 }
-
 .summary-item {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.95rem;
     color: #334155;
 }
+.btn-export-pdf {
+    width: 100%;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background-color: white;
+    color: #004B8D;
+    border: 1px solid #004B8D;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.btn-export-pdf:hover {
+    background-color: #004B8D;
+    color: white;
+}
 
-/* Coluna 2: Timeline */
+/* --- TIMELINE --- */
+.timeline-column {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    overflow: hidden; /* Para o header arredondado */
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
 .day-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: white;
-    padding: 1.5rem;
-    border-radius: 20px 20px 0 0;
-    border-bottom: 1px solid #f1f5f9;
+    background: #f8fafc;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .day-header h3 {
     text-transform: capitalize;
-    color: var(--moura-dark-blue);
-    font-size: 1.25rem;
+    color: #1e293b;
+    font-size: 1.3rem;
+    margin: 0;
 }
 
 .day-total-badge {
-    background: #f0f9ff;
-    color: var(--moura-blue);
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-weight: 700;
+    background: #004B8D;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
     font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 4px 6px rgba(0, 75, 141, 0.2);
 }
 
 .day-timeline-content {
-    background: white;
     padding: 2rem;
-    border-radius: 0 0 20px 20px;
-    min-height: 400px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    flex: 1;
 }
 
-/* Timeline Vertical Styling */
+/* ESTRUTURA DA TIMELINE (Vertical Flow) */
+.timeline-vertical {
+    display: flex;
+    flex-direction: column;
+}
+
 .timeline-row {
     display: flex;
     gap: 1.5rem;
-    padding-bottom: 2rem;
+    /* Remove altura fixa para deixar o card expandir, mas garante min-height */
+    min-height: 80px;
 }
 
+/* Coluna da Hora */
 .time-col {
+    width: 60px;
+    text-align: right;
     font-weight: 700;
     color: #64748b;
-    width: 50px;
-    text-align: right;
-    padding-top: 2px;
+    font-size: 0.95rem;
+    padding-top: 2px; /* Alinha com o topo do card */
 }
 
+/* Coluna do Divisor (Ponto + Linha) */
 .timeline-divider {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 20px;
+    width: 24px;
+    position: relative;
 }
 
 .dot {
     width: 14px;
     height: 14px;
-    background: var(--moura-blue);
     border-radius: 50%;
-    border: 3px solid #e0f2fe;
+    border: 3px solid white; /* Cria um anel branco */
+    box-shadow: 0 0 0 2px currentColor; /* Usa a cor do elemento (setada inline) */
+    background-color: currentColor;
+    z-index: 2;
+    flex-shrink: 0;
 }
+
+/* Cores específicas dos dots para referência no CSS,
+   embora o JSX já passe inline para garantir match perfeito */
+.dot-start { color: #10b981; }
+.dot-end { color: #ef4444; }
+.dot-lunch { color: #f59e0b; }
+.dot-break { color: #8b5cf6; }
+.dot-medical { color: #3b82f6; } /* AZUL SOLICITADO */
+.dot-meeting { color: #10b981; }
+.dot-other { color: #64748b; }
 
 .line {
-    flex: 1;
     width: 2px;
-    background: #e2e8f0;
-    margin-top: 4px;
+    background-color: #e2e8f0;
+    flex-grow: 1; /* Ocupa todo o espaço vertical restante */
+    margin-top: -2px; /* Pequeno ajuste para conectar na bolinha */
+    margin-bottom: -2px;
+    z-index: 1;
 }
 
+/* Coluna do Card */
 .timeline-card {
     flex: 1;
-    background: #f8fafc;
-    padding: 1rem;
+    background: #f8fafc; /* Fallback */
     border-radius: 12px;
-    border-left: 4px solid #cbd5e1;
-    transition: transform 0.2s;
+    padding: 1.2rem;
+    margin-bottom: 2rem; /* Espaço entre as linhas */
+    border-left: 5px solid #cbd5e1;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .timeline-card:hover {
-    transform: translateX(5px);
-    background: white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
-
-.timeline-card.type-work { border-left-color: var(--moura-blue); }
-.timeline-card.type-break { border-left-color: var(--moura-yellow); }
 
 .card-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 0.5rem;
 }
 
-.card-header h4 { font-weight: 700; color: #334155; }
-.timeline-card p { font-size: 0.9rem; color: #64748b; }
+.card-header h4 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.timeline-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #475569;
+}
 
 /* Empty State */
 .empty-state {
@@ -141,7 +243,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 300px;
+    height: 100%;
+    min-height: 300px;
     color: #94a3b8;
     text-align: center;
 }
@@ -152,4 +255,20 @@
     border-radius: 50%;
     margin-bottom: 1rem;
     color: #cbd5e1;
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+    .history-grid-layout {
+        grid-template-columns: 1fr;
+    }
+    .calendar-card {
+        margin-bottom: 1.5rem;
+    }
 }
