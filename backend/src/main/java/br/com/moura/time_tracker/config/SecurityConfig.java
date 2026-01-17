@@ -16,19 +16,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(csrf -> csrf.disable()) // Desabilita CSRF (Padrão para API REST)
-            .cors(cors -> {}) // Ativa a configuração global do CorsConfig
+            .csrf(csrf -> csrf.disable()) 
+            .cors(cors -> {}) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // LOGIN: Liberado
+                // LOGIN
                 .requestMatchers("/api/auth/**").permitAll()
                 
-                // --- AQUI ESTÁ A CORREÇÃO (O PASSO 2) ---
-                // PONTO: Liberado temporariamente para o teste funcionar
+                // PONTO (Check-in/Check-out)
                 .requestMatchers("/api/times/**").permitAll() 
-                // ------------------------------------------
 
-                // Qualquer outra rota precisará de token
+                // --- NOVA REGRA PARA FUNCIONÁRIOS ---
+                // Permite listar e editar escalas
+                .requestMatchers("/api/employees/**").permitAll()
+                // ------------------------------------
+
                 .anyRequest().authenticated()
             )
             .build();

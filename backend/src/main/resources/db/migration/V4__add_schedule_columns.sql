@@ -1,0 +1,3 @@
+ALTER TABLE employees 
+ADD COLUMN work_start_time VARCHAR(5) DEFAULT '08:00',
+ADD COLUMN work_end_time VARCHAR(5) DEFAULT '17:00';
