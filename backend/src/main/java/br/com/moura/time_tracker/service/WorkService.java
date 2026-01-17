@@ -1,0 +1,168 @@
+package br.com.moura.time_tracker.service;
+
+import br.com.moura.time_tracker.dto.CheckoutRequestDTO;
+import br.com.moura.time_tracker.dto.WorkRecordResponseDTO;
+import br.com.moura.time_tracker.enums.WorkReason;
+import br.com.moura.time_tracker.model.Employee;
+import br.com.moura.time_tracker.model.WorkRecord;
+import br.com.moura.time_tracker.repository.EmployeeRepository;
+import br.com.moura.time_tracker.repository.WorkRecordRepository; // Novo nome
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class WorkService {
+
+    private final WorkRecordRepository workRecordRepository;
+    private final EmployeeRepository employeeRepository;
+
+    // Formatter para as strings de resposta
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    // 1. Check-in
+    public WorkRecord clockIn(Long employeeId) {
+        // Regra: Não permitir dois check-ins sem check-out
+        if (workRecordRepository.findByEmployeeIdAndCheckOutTimeIsNull(employeeId).isPresent()) {
+            throw new RuntimeException("Não é permitido dois check-ins sem check-out");
+        }
+
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
+
+        WorkRecord newEntry = WorkRecord.builder()
+                .employee(employee)
+                .checkInTime(LocalDateTime.now()) // Atualizado
+                .build();
+
+        return workRecordRepository.save(newEntry);
+    }
+
+    // 2. Check-out
+    public WorkRecord clockOut(Long employeeId, CheckoutRequestDTO request) {
+        WorkRecord entry = workRecordRepository.findByEmployeeIdAndCheckOutTimeIsNull(employeeId)
+                .orElseThrow(() -> new RuntimeException("Não há turno aberto para finalizar!"));
+
+        // Validação do Motivo (Sua regra personalizada)
+        WorkReason reason = WorkReason.fromCode(request.getReason_id());
+
+        if (reason == WorkReason.OTHER) {
+            if (request.getDetails() == null || request.getDetails().trim().isEmpty()) {
+                throw new RuntimeException("Para o motivo 'Outros', o campo 'details' é obrigatório.");
+            }
+        }
+
+        entry.setCheckOutTime(LocalDateTime.now());
+        entry.setReason(reason);
+        entry.setDetails(request.getDetails());
+
+        // Regra: Calcular horas trabalhadas no checkout
+        long seconds = Duration.between(entry.getCheckInTime(), entry.getCheckOutTime()).getSeconds();
+        entry.setDurationSeconds(seconds);
+
+        return workRecordRepository.save(entry);
+    }
+
+    // 3. Listagem Admin (Com Filtros e Paginação)
+    public Page<WorkRecordResponseDTO> getAllRecords(String name, String dateStr, Pageable pageable) {
+        LocalDate date = (dateStr != null && !dateStr.isEmpty()) ? LocalDate.parse(dateStr) : null;
+
+        return workRecordRepository.findAllWithFilters(name, date, pageable)
+                .map(this::toResponseDTO);
+    }
+
+    // 4. Histórico Pessoal (Para o App do funcionário)
+    public List<WorkRecordResponseDTO> getMyHistory(Long employeeId) {
+        return workRecordRepository.findByEmployeeIdOrderByCheckInTimeDesc(employeeId)
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // --- HELPER: Converte Entity -> DTO Formatado ---
+    private WorkRecordResponseDTO toResponseDTO(WorkRecord record) {
+        long seconds = record.getDurationSeconds() != null ? record.getDurationSeconds() : 0;
+
+        // Se ainda não fechou, calcula parcial só para exibir (opcional)
+        if (record.getCheckOutTime() == null) {
+            seconds = Duration.between(record.getCheckInTime(), LocalDateTime.now()).getSeconds();
+        }
+
+        String durationStr = String.format("%02d:%02d:%02d",
+            seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+
+        return WorkRecordResponseDTO.builder()
+                .id(record.getId())
+                .date(record.getCheckInTime().format(DATE_FMT))
+                .checkin_time(record.getCheckInTime().format(TIME_FMT))
+                .checkout_time(record.getCheckOutTime() != null ? record.getCheckOutTime().format(TIME_FMT) : null)
+                .duration(durationStr)
+                .duration_seconds(seconds)
+                .reason_id(record.getReason() != null ? record.getReason().getCode() : null)
+                .reason_label(record.getReason() != null ? record.getReason().getLabel() : null)
+                .details(record.getDetails())
+                .build();
+    }
+
+    // --- GRÁFICOS (Mantido e adaptado) ---
+    public record ChartDataDTO(List<String> categories, List<Double> series) {}
+    public record RankingDTO(String name, Double totalHours) {}
+
+    public ChartDataDTO getWeeklyTeamSummary() {
+        LocalDate today = LocalDate.now();
+        LocalDate sevenDaysAgo = today.minusDays(6);
+        LocalDateTime start = sevenDaysAgo.atStartOfDay();
+        LocalDateTime end = today.atTime(LocalTime.MAX);
+
+        List<WorkRecord> entries = workRecordRepository.findAllByCheckInTimeBetweenOrderByCheckInTimeAsc(start, end);
+        Map<LocalDate, Double> dailyTotals = new LinkedHashMap<>();
+
+        for (int i = 0; i < 7; i++) dailyTotals.put(sevenDaysAgo.plusDays(i), 0.0);
+
+        for (WorkRecord entry : entries) {
+            if (entry.getCheckOutTime() != null) {
+                LocalDate date = entry.getCheckInTime().toLocalDate();
+                dailyTotals.put(date, dailyTotals.getOrDefault(date, 0.0) + (entry.getDurationSeconds() / 3600.0));
+            }
+        }
+        // ... (restante da lógica de formatação igual)
+        List<String> cats = new ArrayList<>();
+        List<Double> sers = new ArrayList<>();
+        dailyTotals.forEach((k, v) -> {
+            cats.add(k.format(DateTimeFormatter.ofPattern("dd/MM")));
+            sers.add(Math.round(v * 100.0) / 100.0);
+        });
+        return new ChartDataDTO(cats, sers);
+    }
+
+    public List<RankingDTO> getEmployeeRanking() {
+        // Lógica mantida, apenas adaptada para checkInTime...
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.minusDays(6).atStartOfDay();
+        LocalDateTime end = today.atTime(LocalTime.MAX);
+
+        List<WorkRecord> entries = workRecordRepository.findAllByCheckInTimeBetweenOrderByCheckInTimeAsc(start, end);
+        Map<String, Long> rankingMap = new HashMap<>();
+
+        for (WorkRecord entry : entries) {
+            if (entry.getCheckOutTime() != null && entry.getEmployee() != null) {
+                rankingMap.merge(entry.getEmployee().getName(), entry.getDurationSeconds(), Long::sum);
+            }
+        }
+        return rankingMap.entrySet().stream()
+                .map(e -> new RankingDTO(e.getKey(), Math.round((e.getValue() / 3600.0) * 100.0) / 100.0))
+                .sorted(Comparator.comparingDouble(RankingDTO::totalHours).reversed())
+                .collect(Collectors.toList());
+    }
+}

@@ -6,49 +6,59 @@ import {
 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import { formatSecondsToTime, formatMinutesToLabel } from '../utils/timeUtils';
-import { toast } from 'sonner';
 
-const Dashboard = ({ workStatus, elapsedTime, onCheckIn, onCheckOut, SHIFT_CONFIG, startTime, isLoading }) => {
+const Dashboard = ({
+                       userName,
+                       workStatus,
+                       elapsedTime,
+                       onCheckIn,
+                       onCheckOut,
+                       SHIFT_CONFIG,
+                       isLoading,
+                       historyData = [] // Recebe do React Query via MainLayout
+                   }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Mock inicial visual para o histórico recente (o histórico completo fica na aba Histórico)
-    const [recentHistory, setRecentHistory] = useState([
-        {
-            id: 1,
-            fullDate: new Date().toISOString(),
-            date: 'Hoje',
-            duration: '08:45:00',
-            seconds: 31500,
-            type: 'end_shift',
-            label: 'Fim de Expediente',
-            times: { start: '08:00', end: '16:45' }
-        },
-        {
-            id: 2,
-            fullDate: new Date(Date.now() - 86400000).toISOString(),
-            date: 'Ontem',
-            duration: '02:00:00',
-            seconds: 7200,
-            type: 'medical',
-            label: 'Consulta Médica',
-            times: { start: '14:00', end: '16:00' }
-        }
-    ]);
+    // --- PROCESSAMENTO DE DADOS (Adapter Backend -> Frontend) ---
+    // Transforma o DTO do Java em formato amigável para a UI
+    const processedHistory = useMemo(() => {
+        // Pega apenas os 5 últimos registros para o Dashboard não ficar gigante
+        return historyData.slice(0, 5).map(record => ({
+            id: record.id,
+            date: new Date(record.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), // "17/01"
+            fullDate: record.date, // "2026-01-17" para o gráfico
+            duration: record.duration,
+            seconds: record.duration_seconds || 0,
+            type: record.reason_id || 'end_shift', // Fallback
+            label: record.reason_label || 'Em andamento',
+            times: {
+                start: record.checkin_time?.substring(0, 5), // "08:00"
+                end: record.checkout_time?.substring(0, 5) || '--:--'
+            },
+            isClosed: !!record.checkout_time
+        }));
+    }, [historyData]);
 
-    // --- CÁLCULO DINÂMICO DO GRÁFICO ---
+    // --- CÁLCULO DINÂMICO DO GRÁFICO (Semanal) ---
     const weeklyData = useMemo(() => {
-        const data = [0, 0, 0, 0, 0];
-        recentHistory.forEach(record => {
-            if (!record.fullDate) return;
-            const date = new Date(record.fullDate);
-            const day = date.getDay();
+        const data = [0, 0, 0, 0, 0]; // Seg a Sex
+
+        // Itera sobre TODO o histórico disponível (não só os 5 recentes)
+        historyData.forEach(record => {
+            if (!record.date || !record.duration_seconds) return;
+
+            // Corrige fuso horário adicionando 'T00:00' para garantir dia correto
+            const dateObj = new Date(record.date + 'T00:00:00');
+            const day = dateObj.getDay(); // 0=Dom, 1=Seg...
+
             if (day >= 1 && day <= 5) {
-                const hours = record.seconds / 3600;
+                const hours = record.duration_seconds / 3600;
                 data[day - 1] += hours;
             }
         });
+
         return data.map(val => Number(val.toFixed(1)));
-    }, [recentHistory]);
+    }, [historyData]);
 
     // --- CONFIGURAÇÕES VISUAIS ---
     const getReasonConfig = (type) => {
@@ -63,59 +73,22 @@ const Dashboard = ({ workStatus, elapsedTime, onCheckIn, onCheckOut, SHIFT_CONFI
         }
     };
 
-    const analyzeShift = (seconds, isActive) => {
-        if (isActive) return { label: 'Em Andamento', cssClass: 'status-working', icon: <Loader2 size={14} className="spin-slow"/> };
+    const analyzeShift = (seconds, isClosed) => {
+        if (!isClosed) return { label: 'Em Andamento', cssClass: 'status-working', icon: <Loader2 size={14} className="spin-slow"/> };
+
         const TARGET = SHIFT_CONFIG.seconds;
-        const TOLERANCE = 300;
+        const TOLERANCE = 300; // 5 min de tolerância
         if (seconds > TARGET + TOLERANCE) return { label: 'Hora Extra', cssClass: 'status-extra', icon: <TrendingUp size={14} /> };
         if (seconds >= TARGET - TOLERANCE) return { label: 'Jornada Normal', cssClass: 'status-perfect', icon: <CheckCircle2 size={14} /> };
         return { label: 'Incompleto', cssClass: 'status-incomplete', icon: <AlertCircle size={14} /> };
     };
 
-    // --- AÇÕES DO USUÁRIO ---
-    const handleCheckOutRequest = () => setIsModalOpen(true);
-
-    const confirmCheckOut = (data) => {
-        const { reasonId, details } = data;
-        const now = new Date();
-
-        // Tenta pegar o start time real ou calcula baseado no tempo decorrido
-        const startObj = startTime || new Date(now.getTime() - (elapsedTime * 1000));
-
-        const startStr = startObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        const endStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-        const reasonLabels = {
-            'end_shift': 'Fim de Expediente',
-            'lunch_start': 'Almoço',
-            'break_start': 'Pausa',
-            'meeting_start': 'Reunião',
-            'medical': 'Médico',
-            'other': 'Outros'
-        };
-
-        const displayLabel = reasonId === 'other' ? details : reasonLabels[reasonId];
-        const durationFormatted = formatSecondsToTime(elapsedTime);
-
-        // Atualiza histórico visual local
-        setRecentHistory([
-            {
-                id: Date.now(),
-                fullDate: now.toISOString(),
-                date: 'Hoje',
-                duration: durationFormatted,
-                seconds: elapsedTime,
-                type: reasonId,
-                label: displayLabel,
-                times: { start: startStr, end: endStr }
-            },
-            ...recentHistory
-        ]);
-
-        // Chama a função do Pai que vai bater na API
-        onCheckOut(elapsedTime);
+    // --- CONFIRMAÇÃO DO MODAL ---
+    const confirmCheckOut = (modalData) => {
+        // modalData = { reasonId: '...', details: '...' }
         setIsModalOpen(false);
-        toast.success(`Registro salvo: ${displayLabel}`);
+        // Passa para o pai (MainLayout) realizar a mutation
+        onCheckOut(modalData);
     };
 
     const chartOptions = {
@@ -136,7 +109,7 @@ const Dashboard = ({ workStatus, elapsedTime, onCheckIn, onCheckOut, SHIFT_CONFI
             <ConfirmationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={confirmCheckOut} />
 
             <div className="header-welcome">
-                <h2 className="welcome-title">Olá, Colaborador</h2>
+                <h2 className="welcome-title">Olá, {userName}</h2>
                 <p className="date-display">
                     {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
                     <span style={{marginLeft: '10px', fontSize: '0.8rem', background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', color: '#64748b'}}>
@@ -146,6 +119,7 @@ const Dashboard = ({ workStatus, elapsedTime, onCheckIn, onCheckOut, SHIFT_CONFI
             </div>
 
             <div className="dashboard-grid">
+                {/* COLUNA ESQUERDA: TIMER + GRÁFICO */}
                 <div className="left-column">
                     <div className="punch-card">
                         {workStatus === 'working' && <div className="working-pulse"></div>}
@@ -177,6 +151,7 @@ const Dashboard = ({ workStatus, elapsedTime, onCheckIn, onCheckOut, SHIFT_CONFI
                     </div>
                 </div>
 
+                {/* COLUNA DIREITA: LISTA RECENTE */}
                 <div className="right-column">
                     <div className="history-card">
                         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: '1.5rem'}}>
@@ -185,48 +160,47 @@ const Dashboard = ({ workStatus, elapsedTime, onCheckIn, onCheckOut, SHIFT_CONFI
                         </div>
 
                         <div className="history-list">
-                            {recentHistory.map((record) => {
-                                const config = getReasonConfig(record.type);
-                                const IconComponent = config.icon;
-                                const timeStatus = analyzeShift(record.seconds);
+                            {processedHistory.length === 0 ? (
+                                <p style={{textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem', padding: '20px'}}>Nenhum registro recente.</p>
+                            ) : (
+                                processedHistory.map((record) => {
+                                    const config = getReasonConfig(record.type);
+                                    const IconComponent = config.icon;
+                                    const timeStatus = analyzeShift(record.seconds, record.isClosed);
 
-                                return (
-                                    <div key={record.id} className="history-item">
-                                        <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
+                                    return (
+                                        <div key={record.id} className="history-item">
+                                            <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
+                                                <div className="history-icon-box" style={{ backgroundColor: config.bg, color: config.color }}>
+                                                    <IconComponent size={20} />
+                                                </div>
 
-                                            <div
-                                                className="history-icon-box"
-                                                style={{ backgroundColor: config.bg, color: config.color }}
-                                            >
-                                                <IconComponent size={20} />
-                                            </div>
+                                                <div className="history-details">
+                                                    <span className="history-date">{record.date}</span>
+                                                    <span style={{ fontSize: '0.8rem', fontWeight: '700', color: config.color, display: 'block' }}>
+                                                        {record.label}
+                                                    </span>
 
-                                            <div className="history-details">
-                                                <span className="history-date">{record.date}</span>
-                                                <span style={{ fontSize: '0.8rem', fontWeight: '700', color: config.color, display: 'block' }}>
-                                                    {record.label}
-                                                </span>
-
-                                                {/* NOVA LINHA: Horário de Início e Fim */}
-                                                {record.times && (
                                                     <div style={{display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#64748b', marginTop: '2px'}}>
                                                         <span>{record.times.start}</span>
                                                         <ArrowRight size={10} />
                                                         <span>{record.times.end}</span>
                                                     </div>
-                                                )}
+                                                </div>
+                                            </div>
 
-                                                {record.type === 'end_shift' && (
+                                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end'}}>
+                                                <span className="history-duration">{record.duration}</span>
+                                                {record.isClosed && (
                                                     <span className={`status-badge ${timeStatus.cssClass}`} style={{marginTop: '4px', fontSize: '0.65rem'}}>
                                                         {timeStatus.label}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
-                                        <span className="history-duration">{record.duration}</span>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })
+                            )}
                         </div>
                     </div>
                 </div>
