@@ -17,13 +17,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
             .csrf(csrf -> csrf.disable()) // Desabilita CSRF (Padrão para API REST)
-            // .cors(cors -> {}) ativa a configuração global que você fez no arquivo CorsConfig
-            .cors(cors -> {}) 
+            .cors(cors -> {}) // Ativa a configuração global do CorsConfig
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // AQUI ESTÁ A CORREÇÃO:
-                // Liberamos exatamente a rota do seu Controller (/api/auth/login)
+                // LOGIN: Liberado
                 .requestMatchers("/api/auth/**").permitAll()
+                
+                // --- AQUI ESTÁ A CORREÇÃO (O PASSO 2) ---
+                // PONTO: Liberado temporariamente para o teste funcionar
+                .requestMatchers("/api/times/**").permitAll() 
+                // ------------------------------------------
+
                 // Qualquer outra rota precisará de token
                 .anyRequest().authenticated()
             )
