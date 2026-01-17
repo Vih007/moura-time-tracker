@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
-// 1. IMPORTAR O NAVEGADOR (Isso é obrigatório para mudar de tela)
 import { useNavigate } from 'react-router-dom'; 
 import { User, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import mouraLogo from '../assets/moura-logo.png';
 import './Login.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-// Removemos o 'onLoginSuccess' pois vamos navegar direto daqui
 const Login = () => {
-    // 2. INICIALIZAR O HOOK DE NAVEGAÇÃO
     const navigate = useNavigate(); 
     
     const [email, setEmail] = useState('');
@@ -23,7 +20,7 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -44,8 +41,8 @@ const Login = () => {
             // --- SALVANDO DADOS NO NAVEGADOR ---
             localStorage.setItem('moura_auth', 'true');
             localStorage.setItem('moura_token', data.token);
-            localStorage.setItem('moura_role', data.role); // Importante: Salva se é ADMIN ou USER
-            localStorage.setItem('userName', data.name);   // Salva o nome para exibir no dashboard
+            localStorage.setItem('moura_role', data.role);
+            localStorage.setItem('userName', data.name);
             
             localStorage.setItem('moura_user', JSON.stringify({
                 id: data.id,
