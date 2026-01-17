@@ -6,7 +6,8 @@ import './Dashboard.css';
 
 import Dashboard from './Dashboard';
 import History from './History';
-import { getShiftConfig } from '../utils/timeUtils';
+// IMPORT ATUALIZADO: Adicionei calculateSecondsSince
+import { getShiftConfig, calculateSecondsSince } from '../utils/timeUtils';
 
 // Imports do React Query
 import { useMyHistory, useCheckIn, useCheckOut } from '../lib/queries/useWork';
@@ -27,7 +28,6 @@ const MainLayout = ({ onLogout }) => {
     const checkOutMutation = useCheckOut();
 
     // Lógica: Se o registro mais recente (índice 0, pois a API ordena DESC) não tem checkout, estou trabalhando.
-    // Nota: O backend retorna ordenado. Vamos procurar se existe algum sem checkout.
     const activeShift = history.find(record => record.checkout_time === null);
     const workStatus = activeShift ? 'working' : 'idle';
 
@@ -40,26 +40,13 @@ const MainLayout = ({ onLogout }) => {
 
         const tick = () => {
             if (activeShift?.checkin_time && activeShift?.date) {
+                // CORREÇÃO: Usamos a função auxiliar que já trata o fuso horário local corretamente.
+                // Isso evita o problema de adicionar 3 horas indevidamente (UTC vs Local).
+                const currentSeconds = calculateSecondsSince(activeShift.date, activeShift.checkin_time);
 
-                // 1. Quebra a string vinda do servidor
-                const [year, month, day] = activeShift.date.split('-').map(Number);
-                const [hours, minutes, seconds] = activeShift.checkin_time.split(':').map(Number);
-
-                // 2. Cria a data tratando os dados como UTC
-                // Date.UTC retorna o timestamp em milissegundos
-                // Note: month - 1 continua necessário pois Janeiro = 0
-                const startTimeMs = Date.UTC(year, month - 1, day, hours, minutes, seconds);
-
-                const now = new Date();
-
-                // 3. Cálculo da diferença
-                // 'now' já sabe lidar com fuso, e startTimeMs agora é um timestamp universal
-                const diff = Math.floor((now.getTime() - startTimeMs) / 1000);
-
-                const currentSeconds = diff >= 0 ? diff : 0;
                 setElapsedTime(currentSeconds);
 
-                // --- ÁUDIO E NOTIFICAÇÕES (Mantido igual) ---
+                // --- ÁUDIO E NOTIFICAÇÕES ---
                 const halfTime = SHIFT_CONFIG.seconds / 2;
                 if (currentSeconds === halfTime && !audioFlags.current.halfPlayed) {
                     new Audio('/sounds/notification.mp3').play().catch(() => {});
@@ -138,17 +125,16 @@ const MainLayout = ({ onLogout }) => {
                         userName={user?.name || 'Colaborador'}
                         workStatus={workStatus}
                         elapsedTime={elapsedTime}
-                        historyData={history} // Passamos o histórico real para o gráfico/lista
+                        historyData={history}
                         isLoading={checkInMutation.isPending || checkOutMutation.isPending || isLoadingHistory}
                         SHIFT_CONFIG={SHIFT_CONFIG}
 
                         // Ações
                         onCheckIn={handleStartTimer}
-                        onCheckOut={handleStopTimer} // Dashboard chamará isso após o Modal
+                        onCheckOut={handleStopTimer}
                     />
                 ) : (
-                    // Reutiliza os dados já carregados para evitar refetch
-                    <History historyData={history} />
+                    <History historyData={history} SHIFT_CONFIG={SHIFT_CONFIG} />
                 )}
             </main>
         </div>

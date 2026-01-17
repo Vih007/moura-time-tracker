@@ -35,8 +35,6 @@ export const getShiftConfig = () => {
     };
 };
 
-// ... (mantenha as funções existentes getShiftConfig, formatSecondsToTime, etc.)
-
 /**
  * Calcula a diferença segura entre uma data/hora UTC do servidor e agora.
  * Usado para inicializar os contadores.
@@ -44,14 +42,14 @@ export const getShiftConfig = () => {
 export const calculateSecondsSince = (dateStr, timeStr) => {
     if (!dateStr || !timeStr) return 0;
 
-    // Parsing Manual Seguro (UTC)
     const [year, month, day] = dateStr.split('-').map(Number);
     const [hours, minutes, seconds] = timeStr.split(':').map(Number);
 
-    const startTimeMs = Date.UTC(year, month - 1, day, hours, minutes, seconds);
+    const startTimeRef = new Date(year, month - 1, day, hours, minutes, seconds);
+
     const now = new Date();
 
-    const diff = Math.floor((now.getTime() - startTimeMs) / 1000);
+    const diff = Math.floor((now.getTime() - startTimeRef.getTime()) / 1000);
     return diff >= 0 ? diff : 0;
 };
 
