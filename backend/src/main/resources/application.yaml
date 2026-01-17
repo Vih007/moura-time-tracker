@@ -3,9 +3,9 @@ spring:
     name: time-tracker
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/time-tracker
+    url: jdbc:postgresql://localhost:5431/time-tracker
     username: postgres
-    password: 12345678
+    password: postgres
     driver-class-name: org.postgresql.Driver
 
   jpa:
