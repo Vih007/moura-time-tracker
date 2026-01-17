@@ -1,5 +1,6 @@
 version: '3.8'
 name: time-tracker
+
 services:
   postgres:
     image: postgres:16
@@ -12,19 +13,35 @@ services:
       - "5431:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d time-tracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: always
 
   backend:
-    build: .
+    build: ./backend
     container_name: time-tracker-backend
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
+      # Usa o nome do serviço 'postgres' e a porta interna 5432
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/time-tracker
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: time-tracker-frontend
+    ports:
+      - "5173:80" # Mapeia a porta 80 do Nginx para a 5173 local
+    depends_on:
+      - backend
     restart: always
 
 volumes:
