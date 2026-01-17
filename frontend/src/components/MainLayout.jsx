@@ -40,17 +40,26 @@ const MainLayout = ({ onLogout }) => {
 
         const tick = () => {
             if (activeShift?.checkin_time && activeShift?.date) {
-                // Backend: date="2026-01-17", checkin_time="08:00:00"
-                // IOS String Format para garantir compatibilidade
-                const startDateStr = `${activeShift.date}T${activeShift.checkin_time}`;
-                const startTimeRef = new Date(startDateStr);
+
+                // 1. Quebra a string vinda do servidor
+                const [year, month, day] = activeShift.date.split('-').map(Number);
+                const [hours, minutes, seconds] = activeShift.checkin_time.split(':').map(Number);
+
+                // 2. Cria a data tratando os dados como UTC
+                // Date.UTC retorna o timestamp em milissegundos
+                // Note: month - 1 continua necessário pois Janeiro = 0
+                const startTimeMs = Date.UTC(year, month - 1, day, hours, minutes, seconds);
+
                 const now = new Date();
 
-                const diff = Math.floor((now - startTimeRef) / 1000);
+                // 3. Cálculo da diferença
+                // 'now' já sabe lidar com fuso, e startTimeMs agora é um timestamp universal
+                const diff = Math.floor((now.getTime() - startTimeMs) / 1000);
+
                 const currentSeconds = diff >= 0 ? diff : 0;
                 setElapsedTime(currentSeconds);
 
-                // Notificações de Áudio
+                // --- ÁUDIO E NOTIFICAÇÕES (Mantido igual) ---
                 const halfTime = SHIFT_CONFIG.seconds / 2;
                 if (currentSeconds === halfTime && !audioFlags.current.halfPlayed) {
                     new Audio('/sounds/notification.mp3').play().catch(() => {});
@@ -62,6 +71,9 @@ const MainLayout = ({ onLogout }) => {
                     toast.success('Meta diária alcançada!');
                     audioFlags.current.fullPlayed = true;
                 }
+            } else {
+                setElapsedTime(0);
+                audioFlags.current = { halfPlayed: false, fullPlayed: false };
             }
         };
 
@@ -69,8 +81,7 @@ const MainLayout = ({ onLogout }) => {
             tick();
             interval = setInterval(tick, 1000);
         } else {
-            setElapsedTime(0);
-            audioFlags.current = { halfPlayed: false, fullPlayed: false };
+            if (!activeShift) setElapsedTime(0);
         }
 
         return () => clearInterval(interval);
