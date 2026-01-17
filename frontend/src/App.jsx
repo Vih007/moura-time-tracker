@@ -14,7 +14,10 @@ function App() {
     };
 
     const handleLogout = () => {
+        // Limpar todos os dados de autenticação
         localStorage.removeItem('moura_auth');
+        localStorage.removeItem('moura_token');
+        localStorage.removeItem('moura_user');
         setIsAuthenticated(false);
     };
 

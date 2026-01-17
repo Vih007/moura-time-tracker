@@ -1,0 +1,37 @@
+package br.com.moura.time_tracker.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+            .csrf(csrf -> csrf.disable()) // Desabilita CSRF (Padrão para API REST)
+            // .cors(cors -> {}) ativa a configuração global que você fez no arquivo CorsConfig
+            .cors(cors -> {}) 
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorize -> authorize
+                // AQUI ESTÁ A CORREÇÃO:
+                // Liberamos exatamente a rota do seu Controller (/api/auth/login)
+                .requestMatchers("/api/auth/**").permitAll()
+                // Qualquer outra rota precisará de token
+                .anyRequest().authenticated()
+            )
+            .build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}

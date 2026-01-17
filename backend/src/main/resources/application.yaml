@@ -3,17 +3,28 @@ spring:
     name: time-tracker
 
   datasource:
-    url: jdbc:postgresql://localhost:5431/time-tracker
+    url: jdbc:postgresql://localhost:5432/time-tracker
     username: postgres
-    password: postgres
+    password: 12345678
     driver-class-name: org.postgresql.Driver
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
+    hibernate:
+      ddl-auto: validate
 
   flyway:
     enabled: true
 
+  security:
+    user:
+      name: disabled
+      password: disabled
+
 server:
   port: 8080
+
+jwt:
+  secret: your-secret-key-change-in-production-moura-tech-2026
+  expiration: 86400

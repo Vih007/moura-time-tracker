@@ -3,25 +3,52 @@ import { User, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import mouraLogo from '../assets/moura-logo.png';
 import './Login.css';
 
-const Login = ({ onLoginSuccess }) => {
-    const [username, setUsername] = useState('');
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+
+const Login = ({ onLoginSuccess } ) => {
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
 
-        setTimeout(() => {
-            if (username === 'admin' && password === '123456') {
-                onLoginSuccess();
-            } else {
-                setError('Credenciais inválidas. Tente novamente.');
-                setIsLoading(false);
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Falha na autenticação');
             }
-        }, 1500);
+
+            const data = await response.json();
+            
+            // Armazenar token e dados do usuário
+            localStorage.setItem('moura_auth', 'true');
+            localStorage.setItem('moura_token', data.token);
+            localStorage.setItem('moura_user', JSON.stringify({
+                id: data.id,
+                name: data.name,
+                email: data.email,
+            }));
+
+            onLoginSuccess();
+        } catch (err) {
+            setError(err.message || 'Email ou senha inválidos. Tente novamente.');
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -46,15 +73,16 @@ const Login = ({ onLoginSuccess }) => {
                     )}
 
                     <div className="input-group">
-                        <label className="input-label">Usuário</label>
+                        <label className="input-label">Email</label>
                         <div className="input-field-wrapper">
                             <input
-                                type="text"
+                                type="email"
                                 className="input-field"
-                                placeholder="Ex: admin"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="seu.email@moura.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 disabled={isLoading}
+                                required
                             />
                             <User size={20} className="input-icon" />
                         </div>
@@ -70,6 +98,7 @@ const Login = ({ onLoginSuccess }) => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={isLoading}
+                                required
                             />
                             <Lock size={20} className="input-icon" />
                         </div>
