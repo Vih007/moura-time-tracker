@@ -21,34 +21,41 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Habilita o CORS configurado abaixo
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/").permitAll()
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Habilita o CORS
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers("/").permitAll()
 
-                        // 1. LOGIN (Mantido)
-                        .requestMatchers("/api/auth/**").permitAll()
+                    // --- PERMISSÕES DO SWAGGER / OPENAPI ---
+                    .requestMatchers(
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                    ).permitAll()
 
-                        // 2. NOVAS ROTAS DO PDF (Atualizado de /api/times para /work)
-                        .requestMatchers("/work/**").permitAll()
+                    // 1. LOGIN
+                    .requestMatchers("/api/auth/**").permitAll()
 
-                        // 3. EMPREGADOS (Listagem e Escala)
-                        .requestMatchers("/api/employees/**").permitAll()
+                    // 2. NOVAS ROTAS DO PDF
+                    .requestMatchers("/work/**").permitAll()
 
-                        // 4. ADMIN
-                        .requestMatchers("/admin/**").permitAll()
+                    // 3. EMPREGADOS (Listagem e Escala)
+                    .requestMatchers("/api/employees/**").permitAll()
 
-                        .anyRequest().authenticated()
-                )
-                .build();
+                    // 4. ADMIN
+                    .requestMatchers("/admin/**").permitAll()
+
+                    .anyRequest().authenticated()
+            )
+            .build();
     }
 
-    // --- CONFIGURAÇÃO DE CORS (Importante para React + Java) ---
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permite o Frontend (ajuste a porta se o seu React rodar em outra, ex: 3000 ou 5173)
+        // Permite o Frontend nas portas comuns de desenvolvimento
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
