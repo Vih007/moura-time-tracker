@@ -4,15 +4,27 @@ import br.com.moura.time_tracker.model.TimeEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime; 
 
 public interface TimeEntryRepository extends JpaRepository<TimeEntry, Long> {
 
-    // Busca todo o histórico de um funcionário específico (para o Dashboard dele)
+    // Busca histórico de um funcionário
     List<TimeEntry> findByEmployeeIdOrderByStartTimeDesc(Long employeeId);
 
-    // Verifica se o funcionário tem algum ponto em aberto (check-in sem check-out)
+    // Verifica ponto em aberto
     Optional<TimeEntry> findByEmployeeIdAndEndTimeIsNull(Long employeeId);
 
-    // Busca TUDO de TODOS, ordenado pelo mais recente (para o Admin)
+    // Busca TUDO (para lista geral do Admin)
     List<TimeEntry> findAllByOrderByStartTimeDesc();
+
+    // Busca relatório específico de um funcionário
+    List<TimeEntry> findByEmployeeIdAndStartTimeBetweenOrderByStartTimeDesc(
+        Long employeeId, 
+        LocalDateTime start, 
+        LocalDateTime end
+    );
+
+    // --- NOVO (Para o Gráfico de Atividade Geral) ---
+    // Busca TODOS os registros de TODOS os funcionários num intervalo
+    List<TimeEntry> findAllByStartTimeBetweenOrderByStartTimeAsc(LocalDateTime start, LocalDateTime end);
 }
