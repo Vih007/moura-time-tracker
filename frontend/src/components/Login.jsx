@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
+// 1. IMPORTAR O NAVEGADOR (Isso é obrigatório para mudar de tela)
+import { useNavigate } from 'react-router-dom'; 
 import { User, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import mouraLogo from '../assets/moura-logo.png';
 import './Login.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-const Login = ({ onLoginSuccess } ) => {
+// Removemos o 'onLoginSuccess' pois vamos navegar direto daqui
+const Login = () => {
+    // 2. INICIALIZAR O HOOK DE NAVEGAÇÃO
+    const navigate = useNavigate(); 
+    
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -35,16 +41,29 @@ const Login = ({ onLoginSuccess } ) => {
 
             const data = await response.json();
             
-            // Armazenar token e dados do usuário
+            // --- SALVANDO DADOS NO NAVEGADOR ---
             localStorage.setItem('moura_auth', 'true');
             localStorage.setItem('moura_token', data.token);
+            localStorage.setItem('moura_role', data.role); // Importante: Salva se é ADMIN ou USER
+            localStorage.setItem('userName', data.name);   // Salva o nome para exibir no dashboard
+            
             localStorage.setItem('moura_user', JSON.stringify({
                 id: data.id,
                 name: data.name,
                 email: data.email,
+                role: data.role 
             }));
 
-            onLoginSuccess();
+            // --- AQUI ESTÁ O PULO DO GATO (REDIRECIONAMENTO) ---
+            if (data.role === 'ADMIN') {
+                console.log("Login de Chefe detectado. Indo para /admin/dashboard");
+                navigate('/admin/dashboard'); 
+            } else {
+                console.log("Login de Colaborador detectado. Indo para /dashboard");
+                navigate('/dashboard'); 
+            }
+            // ----------------------------------------------------
+
         } catch (err) {
             setError(err.message || 'Email ou senha inválidos. Tente novamente.');
             setIsLoading(false);
