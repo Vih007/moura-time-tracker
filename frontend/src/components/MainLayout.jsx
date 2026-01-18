@@ -8,7 +8,8 @@ import Dashboard from './Dashboard';
 import History from './History';
 import { getShiftConfig, calculateSecondsSince } from '../utils/timeUtils';
 
-import { useMyHistory, useCheckIn, useCheckOut } from '../lib/queries/useWork';
+// IMPORTS ATUALIZADOS
+import { useWorkHistory, useCheckIn, useCheckOut } from '../lib/queries/useWork';
 
 const MainLayout = ({ onLogout }) => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -19,11 +20,20 @@ const MainLayout = ({ onLogout }) => {
         return stored ? JSON.parse(stored) : null;
     });
 
-    const { data: history = [], isLoading: isLoadingHistory } = useMyHistory(user?.id);
+    // --- BUSCA GLOBAL (Para o Timer) ---
+    // Busca os 20 últimos para identificar se tem turno aberto recentemente
+    const { data: historyPage } = useWorkHistory({
+        employeeId: user?.id,
+        page: 0,
+        size: 20
+    });
+
+    const recentRecords = historyPage?.content || [];
+
     const checkInMutation = useCheckIn();
     const checkOutMutation = useCheckOut();
 
-    const activeShift = history.find(record => record.checkout_time === null);
+    const activeShift = recentRecords.find(record => record.checkout_time === null);
     const workStatus = activeShift ? 'working' : 'idle';
 
     const [elapsedTime, setElapsedTime] = useState(0);
@@ -72,14 +82,12 @@ const MainLayout = ({ onLogout }) => {
 
     const handleStartTimer = () => {
         if (!user?.id) return;
-
         playNotificationSound();
         checkInMutation.mutate(user.id);
     };
 
     const handleStopTimer = (modalData) => {
         if (!user?.id) return;
-
         playNotificationSound();
         checkOutMutation.mutate({
             employeeId: user.id,
@@ -118,16 +126,16 @@ const MainLayout = ({ onLogout }) => {
                 {activeTab === 'dashboard' ? (
                     <Dashboard
                         userName={user?.name || 'Colaborador'}
+                        userId={user?.id}
                         workStatus={workStatus}
                         elapsedTime={elapsedTime}
-                        historyData={history}
-                        isLoading={checkInMutation.isPending || checkOutMutation.isPending || isLoadingHistory}
+                        isLoading={checkInMutation.isPending || checkOutMutation.isPending}
                         SHIFT_CONFIG={SHIFT_CONFIG}
                         onCheckIn={handleStartTimer}
                         onCheckOut={handleStopTimer}
                     />
                 ) : (
-                    <History historyData={history} SHIFT_CONFIG={SHIFT_CONFIG} />
+                    <History userId={user?.id} SHIFT_CONFIG={SHIFT_CONFIG} />
                 )}
             </main>
         </div>

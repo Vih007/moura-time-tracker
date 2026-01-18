@@ -8,6 +8,8 @@ import {
 import ConfirmationModal from './ConfirmationModal';
 import { formatSecondsToTime, formatMinutesToLabel, calculateSecondsSince, formatTimeBalance } from '../utils/timeUtils';
 
+import { useWorkHistory } from '../lib/queries/useWork';
+
 // --- HELPER: Formatar Horas Decimais ---
 const formatDecimalToTime = (val) => {
     if (!val) return "00:00";
@@ -207,8 +209,6 @@ const RecentHistory = memo(({ historyData, SHIFT_CONFIG }) => {
     }, [historyData]);
 
     // 3. IDENTIFICAR O "ÚLTIMO" REGISTRO DE CADA DIA
-    // Como a lista vem ordenada por DATA DESC, o primeiro registro que encontramos de uma data X
-    // é o último cronologicamente. Vamos marcar isso.
     const recordsWithMeta = useMemo(() => {
         const processedDates = new Set();
 
@@ -272,13 +272,28 @@ const PunchClock = ({ workStatus, elapsedTime, onCheckIn, onRequestCheckOut, isL
 };
 
 // ==========================================
-// 5. DASHBOARD PRINCIPAL (MANTIDO)
+// 5. DASHBOARD PRINCIPAL (ATUALIZADO)
 // ==========================================
 const Dashboard = ({
-                       userName, workStatus, elapsedTime, onCheckIn, onCheckOut,
-                       SHIFT_CONFIG, isLoading, historyData = []
+                       userName,
+                       userId, // <--- NOVA PROP: Precisamos do ID para buscar os dados
+                       workStatus,
+                       elapsedTime,
+                       onCheckIn,
+                       onCheckOut,
+                       SHIFT_CONFIG,
+                       isLoading
+                       // historyData REMOVIDA
                    }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const { data: historyPage } = useWorkHistory({
+        employeeId: userId,
+        page: 0,
+        size: 20
+    });
+
+    const historyData = historyPage?.content || [];
 
     const handleConfirmCheckOut = (modalData) => {
         setIsModalOpen(false);

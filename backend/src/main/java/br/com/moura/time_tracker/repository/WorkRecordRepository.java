@@ -17,20 +17,23 @@ public interface WorkRecordRepository extends JpaRepository<WorkRecord, UUID> {
 
     Optional<WorkRecord> findByEmployeeIdAndCheckOutTimeIsNull(UUID employeeId);
 
-    List<WorkRecord> findByEmployeeIdOrderByCheckInTimeDesc(UUID employeeId);
+    List<WorkRecord> findByEmployeeIdAndCheckInTimeBetween(UUID employeeId, LocalDateTime start, LocalDateTime end);
 
-    @Query("SELECT w FROM WorkRecord w WHERE " +
-           "(:name IS NULL OR LOWER(w.employee.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-           "(:date IS NULL OR CAST(w.checkInTime AS date) = :date)")
-    Page<WorkRecord> findAllWithFilters(@Param("name") String name, 
-                                        @Param("date") LocalDate date, 
-                                        Pageable pageable);
+    Page<WorkRecord> findByEmployeeIdOrderByCheckInTimeDesc(UUID employeeId, Pageable pageable);
+
+    @Query("SELECT w FROM WorkRecord w WHERE w.employee.id = :employeeId " +
+            "AND CAST(w.checkInTime AS date) = :date " +
+            "ORDER BY w.checkInTime DESC")
+    Page<WorkRecord> findByEmployeeIdAndDate(@Param("employeeId") UUID employeeId,
+                                             @Param("date") LocalDate date,
+                                             Pageable pageable);
+
 
     List<WorkRecord> findAllByCheckInTimeBetweenOrderByCheckInTimeAsc(LocalDateTime start, LocalDateTime end);
 
     @Query("SELECT w FROM WorkRecord w WHERE w.employee.id = :employeeId " +
-           "AND w.checkInTime BETWEEN :start AND :end " +
-           "ORDER BY w.checkInTime DESC")
+            "AND w.checkInTime BETWEEN :start AND :end " +
+            "ORDER BY w.checkInTime DESC")
     List<WorkRecord> findReportData(@Param("employeeId") UUID employeeId,
                                     @Param("start") LocalDateTime start,
                                     @Param("end") LocalDateTime end);
