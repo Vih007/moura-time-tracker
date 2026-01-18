@@ -22,29 +22,33 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Habilita o CORS
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers("/").permitAll()
+                    // STATUS
+                    .requestMatchers("/status").permitAll()
 
-                    // --- PERMISSÕES DO SWAGGER / OPENAPI ---
+                    // SWAGGER
                     .requestMatchers(
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html"
                     ).permitAll()
 
-                    // 1. LOGIN
+                    // LOGIN
                     .requestMatchers("/api/auth/**").permitAll()
 
-                    // 2. NOVAS ROTAS DO PDF
+                    // WORK
                     .requestMatchers("/work/**").permitAll()
 
-                    // 3. EMPREGADOS (Listagem e Escala)
+                    // EMPLOYEE
                     .requestMatchers("/api/employees/**").permitAll()
 
                     // 4. ADMIN
                     .requestMatchers("/admin/**").permitAll()
+
+                    // 5. DESENVOLVIMENTO
+                    .requestMatchers("/dev/**").permitAll()
 
                     .anyRequest().authenticated()
             )
@@ -55,7 +59,6 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permite o Frontend nas portas comuns de desenvolvimento
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
