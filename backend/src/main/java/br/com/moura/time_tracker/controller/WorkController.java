@@ -29,7 +29,6 @@ public class WorkController {
 
     private final WorkService workService;
 
-    // --- REQUISITO 1: CHECK-IN ---
     @PostMapping("/checkin")
     @Operation(summary = "Fazer Check-in", description = "Inicia um novo turno de trabalho para o funcionário.")
     public ResponseEntity<ApiResponse<WorkRecordResponseDTO>> checkIn(
@@ -43,7 +42,6 @@ public class WorkController {
         ));
     }
 
-    // --- REQUISITO 2: CHECK-OUT ---
     @PostMapping("/checkout")
     @Operation(summary = "Fazer Check-out", description = "Encerra o turno atual. Exige motivo e detalhes se for 'Outros'.")
     public ResponseEntity<ApiResponse<WorkRecordResponseDTO>> checkOut(
@@ -58,7 +56,6 @@ public class WorkController {
         ));
     }
 
-    // --- REQUISITO 3: LISTAGEM ADMIN ---
     @GetMapping("/list")
     @Operation(summary = "Listagem Geral (Admin)", description = "Lista paginada de todos os registros de ponto com filtros.")
     public ResponseEntity<ApiResponse<Page<WorkRecordResponseDTO>>> listAll(
@@ -73,7 +70,6 @@ public class WorkController {
         return ResponseEntity.ok(ApiResponse.success("Lista recuperada", result));
     }
 
-    // --- FUNCIONALIDADES EXTRAS ---
     @GetMapping("/my-history")
     @Operation(summary = "Meu Histórico", description = "Retorna todo o histórico de pontos do funcionário logado.")
     public ResponseEntity<ApiResponse<List<WorkRecordResponseDTO>>> getMyHistory(@RequestParam Long employeeId) {
