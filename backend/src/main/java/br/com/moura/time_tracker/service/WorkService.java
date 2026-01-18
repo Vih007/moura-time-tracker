@@ -27,13 +27,10 @@ public class WorkService {
     private final WorkRecordRepository workRecordRepository;
     private final EmployeeRepository employeeRepository;
 
-    // Formatter para as strings de resposta
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    // 1. Check-in
-    public WorkRecord clockIn(Long employeeId) {
-        // Regra: Não permitir dois check-ins sem check-out
+    public WorkRecord clockIn(UUID employeeId) {
         if (workRecordRepository.findByEmployeeIdAndCheckOutTimeIsNull(employeeId).isPresent()) {
             throw new RuntimeException("Não é permitido dois check-ins sem check-out");
         }
@@ -50,11 +47,10 @@ public class WorkService {
     }
 
     // 2. Check-out
-    public WorkRecord clockOut(Long employeeId, CheckoutRequestDTO request) {
+    public WorkRecord clockOut(UUID employeeId, CheckoutRequestDTO request) {
         WorkRecord entry = workRecordRepository.findByEmployeeIdAndCheckOutTimeIsNull(employeeId)
                 .orElseThrow(() -> new RuntimeException("Não há turno aberto para finalizar!"));
 
-        // Validação do Motivo (Sua regra personalizada)
         WorkReason reason = WorkReason.fromCode(request.getReason_id());
 
         if (reason == WorkReason.OTHER) {
@@ -67,14 +63,12 @@ public class WorkService {
         entry.setReason(reason);
         entry.setDetails(request.getDetails());
 
-        // Regra: Calcular horas trabalhadas no checkout
         long seconds = Duration.between(entry.getCheckInTime(), entry.getCheckOutTime()).getSeconds();
         entry.setDurationSeconds(seconds);
 
         return workRecordRepository.save(entry);
     }
 
-    // 3. Listagem Admin (Com Filtros e Paginação)
     public Page<WorkRecordResponseDTO> getAllRecords(String name, String dateStr, Pageable pageable) {
         LocalDate date = (dateStr != null && !dateStr.isEmpty()) ? LocalDate.parse(dateStr) : null;
 
@@ -82,15 +76,13 @@ public class WorkService {
                 .map(this::toResponseDTO);
     }
 
-    // 4. Histórico Pessoal (Para o App do funcionário)
-    public List<WorkRecordResponseDTO> getMyHistory(Long employeeId) {
+    public List<WorkRecordResponseDTO> getMyHistory(UUID employeeId) {
         return workRecordRepository.findByEmployeeIdOrderByCheckInTimeDesc(employeeId)
                 .stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // --- HELPER: Converte Entity -> DTO Formatado ---
     private WorkRecordResponseDTO toResponseDTO(WorkRecord record) {
         long seconds = record.getDurationSeconds() != null ? record.getDurationSeconds() : 0;
 

@@ -1,6 +1,6 @@
 CREATE TABLE time_entries (
-    id BIGSERIAL PRIMARY KEY,
-    employee_id BIGINT NOT NULL,
+    id UUID PRIMARY KEY,
+    employee_id UUID NOT NULL,
     start_time TIMESTAMP NOT NULL,
     end_time TIMESTAMP,
     duration_seconds BIGINT,

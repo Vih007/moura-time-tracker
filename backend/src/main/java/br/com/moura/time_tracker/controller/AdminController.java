@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/admin")
@@ -36,7 +37,7 @@ public class AdminController {
     @GetMapping("/report")
     @Operation(summary = "Gerar Relatório Detalhado", description = "Busca registros de ponto filtrados por ID do funcionário e intervalo de datas.")
     public ResponseEntity<?> getReport(
-            @RequestParam Long employeeId,
+            @RequestParam UUID employeeId,
             @RequestParam String startDate,
             @RequestParam String endDate
     ) {
@@ -51,7 +52,7 @@ public class AdminController {
 
     @PutMapping("/employees/{id}/schedule")
     @Operation(summary = "Atualizar Escala de Trabalho", description = "Define ou atualiza os horários de entrada e saída previstos para um funcionário.")
-    public ResponseEntity<?> updateSchedule(@PathVariable Long id, @Valid @RequestBody ScheduleDto schedule) {
+    public ResponseEntity<?> updateSchedule(@PathVariable UUID id, @Valid @RequestBody ScheduleDto schedule) {
         employeeService.updateSchedule(id, schedule);
 
         return ResponseEntity.ok(Map.of("message", "Escala atualizada com sucesso!"));

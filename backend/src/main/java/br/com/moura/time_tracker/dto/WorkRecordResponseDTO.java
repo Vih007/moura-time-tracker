@@ -3,10 +3,12 @@ package br.com.moura.time_tracker.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 @Builder
 public class WorkRecordResponseDTO {
-    private Long id;
+    private UUID id;
     private String date;           // "2026-01-16"
     private String checkin_time;   // "08:00:00"
     private String checkout_time;  // "17:05:00" or null

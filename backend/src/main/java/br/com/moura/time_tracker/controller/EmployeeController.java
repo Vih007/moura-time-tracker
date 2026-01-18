@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -31,7 +32,7 @@ public class EmployeeController {
 
     @PutMapping("/{id}/schedule")
     @Operation(summary = "Atualizar Escala", description = "Define o horário de início e fim de expediente do funcionário.")
-    public ResponseEntity<?> updateSchedule(@PathVariable Long id, @Valid @RequestBody ScheduleDto schedule) {
+    public ResponseEntity<?> updateSchedule(@PathVariable UUID id, @Valid @RequestBody ScheduleDto schedule) {
         employeeService.updateSchedule(id, schedule);
 
         return ResponseEntity.ok("Escala atualizada com sucesso!");
@@ -39,7 +40,7 @@ public class EmployeeController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar por ID", description = "Retorna os detalhes de um funcionário específico.")
-    public ResponseEntity<EmployeeResponse> getEmployee(@PathVariable Long id) {
+    public ResponseEntity<EmployeeResponse> getEmployee(@PathVariable UUID id) {
         return ResponseEntity.ok(employeeService.getEmployeeById(id));
     }
 }

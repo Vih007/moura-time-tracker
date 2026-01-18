@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +31,7 @@ public class EmployeeService {
     }
 
     @Transactional
-    public void updateSchedule(Long id, ScheduleDto schedule) {
+    public void updateSchedule(UUID id, ScheduleDto schedule) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Funcionário não encontrado"));
 
@@ -43,7 +44,7 @@ public class EmployeeService {
         employeeRepository.save(employee);
     }
 
-    public EmployeeResponse getEmployeeById(Long id) {
+    public EmployeeResponse getEmployeeById(UUID id) {
         Employee e = employeeRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Funcionário não encontrado"));
 

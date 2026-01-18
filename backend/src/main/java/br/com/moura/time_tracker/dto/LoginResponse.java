@@ -5,13 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class LoginResponse {
 
-    private Long id;
+    private UUID id;
     private String name;
     private String email;
     private String role; // <--- O NOVO CAMPO (ADMIN ou USER)
@@ -19,7 +21,7 @@ public class LoginResponse {
     private String type;
 
     // Atualizei o construtor para receber o ROLE também
-    public LoginResponse(Long id, String name, String email, String role, String token) {
+    public LoginResponse(UUID id, String name, String email, String role, String token) {
         this.id = id;
         this.name = name;
         this.email = email;

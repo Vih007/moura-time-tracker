@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -21,13 +22,13 @@ public class JwtUtil {
     @Value("${jwt.expiration:86400}")
     private long expirationTime;
 
-    public String generateToken(Long userId, String email, String role) {
+    public String generateToken(UUID userId, String email, String role) {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         Instant expiresAt = Instant.now().plus(expirationTime, ChronoUnit.SECONDS);
 
         return JWT.create()
                 .withSubject(email)
-                .withClaim("userId", userId)
+                .withClaim("userId", String.valueOf(userId))
                 .withClaim("role", role)
                 .withExpiresAt(expiresAt)
                 .withIssuedAt(Instant.now())
@@ -44,7 +45,7 @@ public class JwtUtil {
 
             return Optional.of(
                     new JWTUserData(
-                            jwt.getClaim("userId").asLong(),
+                            UUID.fromString(jwt.getClaim("userId").asString()),
                             jwt.getSubject(),
                             jwt.getClaim("role").asString()
                     )

@@ -28,3 +28,7 @@ server:
 jwt:
   secret: your-secret-key-change-in-production-moura-tech-2026
   expiration: 86400
+
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha

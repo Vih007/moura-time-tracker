@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalTime;
+import java.util.UUID;
 
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class EmployeeResponse {
-    private Long id;
+    private UUID id;
     private String name;
     private String email;
     private String workStartTime;

@@ -32,7 +32,7 @@ public class AdminService {
                 .build()).collect(Collectors.toList());
     }
 
-    public List<WorkRecordResponseDTO> generateReport(Long employeeId, String startDate, String endDate) {
+    public List<WorkRecordResponseDTO> generateReport(UUID employeeId, String startDate, String endDate) {
         LocalDateTime start = LocalDate.parse(startDate).atStartOfDay();
         LocalDateTime end = LocalDate.parse(endDate).atTime(LocalTime.MAX);
 
@@ -55,8 +55,8 @@ public class AdminService {
     @lombok.Builder
     @lombok.Data
     public static class DashboardStatusDTO {
-        private Long id;
-        private Long employeeId;
+        private UUID id;
+        private UUID employeeId;
         private String name;
         private LocalDateTime startTime;
         private LocalDateTime endTime;

@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "1. Autenticação", description = "Endpoints para login e obtenção de tokens")
 public class AuthController {
 
-    private final AuthService authService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 

@@ -11,16 +11,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface WorkRecordRepository extends JpaRepository<WorkRecord, Long> {
+public interface WorkRecordRepository extends JpaRepository<WorkRecord, UUID> {
 
-    // Verifica ponto em aberto (checkOutTime nulo)
-    Optional<WorkRecord> findByEmployeeIdAndCheckOutTimeIsNull(Long employeeId);
+    Optional<WorkRecord> findByEmployeeIdAndCheckOutTimeIsNull(UUID employeeId);
 
-    // Histórico de um funcionário
-    List<WorkRecord> findByEmployeeIdOrderByCheckInTimeDesc(Long employeeId);
+    List<WorkRecord> findByEmployeeIdOrderByCheckInTimeDesc(UUID employeeId);
 
-    // --- REQUISITO PDF: Filtro por nome e data com paginação ---
     @Query("SELECT w FROM WorkRecord w WHERE " +
            "(:name IS NULL OR LOWER(w.employee.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
            "(:date IS NULL OR CAST(w.checkInTime AS date) = :date)")
@@ -28,18 +26,15 @@ public interface WorkRecordRepository extends JpaRepository<WorkRecord, Long> {
                                         @Param("date") LocalDate date, 
                                         Pageable pageable);
 
-    // --- GRÁFICOS (Adaptado para checkInTime) ---
     List<WorkRecord> findAllByCheckInTimeBetweenOrderByCheckInTimeAsc(LocalDateTime start, LocalDateTime end);
 
-    // 1. Para o Relatório Administrativo
     @Query("SELECT w FROM WorkRecord w WHERE w.employee.id = :employeeId " +
            "AND w.checkInTime BETWEEN :start AND :end " +
            "ORDER BY w.checkInTime DESC")
-    List<WorkRecord> findReportData(@Param("employeeId") Long employeeId,
+    List<WorkRecord> findReportData(@Param("employeeId") UUID employeeId,
                                     @Param("start") LocalDateTime start,
                                     @Param("end") LocalDateTime end);
 
-    // 2. Para o Dashboard
     @Query(value = """
         SELECT DISTINCT ON (employee_id) * FROM work_records
         ORDER BY employee_id, checkin_time DESC

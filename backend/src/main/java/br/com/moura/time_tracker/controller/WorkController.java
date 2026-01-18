@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/work")
@@ -32,7 +33,7 @@ public class WorkController {
     @PostMapping("/checkin")
     @Operation(summary = "Fazer Check-in", description = "Inicia um novo turno de trabalho para o funcionário.")
     public ResponseEntity<ApiResponse<WorkRecordResponseDTO>> checkIn(
-            @Parameter(description = "ID do funcionário (Simulado)") @RequestParam Long employeeId) {
+            @Parameter(description = "ID do funcionário (Simulado)") @RequestParam UUID employeeId) {
 
         var record = workService.clockIn(employeeId);
 
@@ -45,7 +46,7 @@ public class WorkController {
     @PostMapping("/checkout")
     @Operation(summary = "Fazer Check-out", description = "Encerra o turno atual. Exige motivo e detalhes se for 'Outros'.")
     public ResponseEntity<ApiResponse<WorkRecordResponseDTO>> checkOut(
-            @RequestParam Long employeeId,
+            @RequestParam UUID employeeId,
             @RequestBody CheckoutRequestDTO request) {
 
         workService.clockOut(employeeId, request);
@@ -72,7 +73,7 @@ public class WorkController {
 
     @GetMapping("/my-history")
     @Operation(summary = "Meu Histórico", description = "Retorna todo o histórico de pontos do funcionário logado.")
-    public ResponseEntity<ApiResponse<List<WorkRecordResponseDTO>>> getMyHistory(@RequestParam Long employeeId) {
+    public ResponseEntity<ApiResponse<List<WorkRecordResponseDTO>>> getMyHistory(@RequestParam UUID employeeId) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Histórico pessoal recuperado",
                 workService.getMyHistory(employeeId)
