@@ -21,13 +21,14 @@ public class JwtUtil {
     @Value("${jwt.expiration:86400}")
     private long expirationTime;
 
-    public String generateToken(Long userId, String email) {
+    public String generateToken(Long userId, String email, String role) {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         Instant expiresAt = Instant.now().plus(expirationTime, ChronoUnit.SECONDS);
 
         return JWT.create()
                 .withSubject(email)
                 .withClaim("userId", userId)
+                .withClaim("role", role)
                 .withExpiresAt(expiresAt)
                 .withIssuedAt(Instant.now())
                 .sign(algorithm);
@@ -44,22 +45,10 @@ public class JwtUtil {
             return Optional.of(
                     new JWTUserData(
                             jwt.getClaim("userId").asLong(),
-                            jwt.getSubject()
+                            jwt.getSubject(),
+                            jwt.getClaim("role").asString()
                     )
             );
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Token inválido ou expirado", exception);
-        }
-    }
-
-    public Long getUserIdFromToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            return JWT.require(algorithm)
-                    .build()
-                    .verify(token)
-                    .getClaim("userId")
-                    .asLong();
         } catch (JWTVerificationException exception) {
             throw new RuntimeException("Token inválido ou expirado", exception);
         }

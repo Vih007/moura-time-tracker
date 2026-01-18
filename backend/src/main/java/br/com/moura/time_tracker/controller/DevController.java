@@ -30,7 +30,7 @@ public class DevController {
         Employee admin = employeeRepository.findByEmail("admin@moura.com")
                 .orElseThrow(() -> new RuntimeException("Admin não encontrado no banco"));
 
-        String token = jwtUtil.generateToken(admin.getId(), admin.getEmail());
+        String token = jwtUtil.generateToken(admin.getId(), admin.getEmail(), admin.getRole());
 
         return ResponseEntity.ok(token);
     }
@@ -42,7 +42,7 @@ public class DevController {
         Employee user = employeeRepository.findByEmail("joao@moura.com")
                 .orElseThrow(() -> new RuntimeException("João não encontrado no banco"));
 
-        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole());
 
         return ResponseEntity.ok(token);
     }

@@ -1,11 +1,14 @@
 package br.com.moura.time_tracker.controller;
 
+import br.com.moura.time_tracker.dto.ScheduleDto;
 import br.com.moura.time_tracker.model.Employee;
 import br.com.moura.time_tracker.repository.EmployeeRepository;
 import br.com.moura.time_tracker.service.AdminService;
+import br.com.moura.time_tracker.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +25,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
 
     @GetMapping("/dashboard")
     @Operation(summary = "Dashboard Geral (Status)", description = "Retorna o status atual de todos os colaboradores (quem está trabalhando e quem já finalizou).")
@@ -47,14 +51,8 @@ public class AdminController {
 
     @PutMapping("/employees/{id}/schedule")
     @Operation(summary = "Atualizar Escala de Trabalho", description = "Define ou atualiza os horários de entrada e saída previstos para um funcionário.")
-    public ResponseEntity<?> updateSchedule(@PathVariable Long id, @RequestBody Map<String, String> schedule) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Funcionario não encontrado"));
-
-        if(schedule.containsKey("workStartTime")) employee.setWorkStartTime(schedule.get("workStartTime"));
-        if(schedule.containsKey("workEndTime")) employee.setWorkEndTime(schedule.get("workEndTime"));
-
-        employeeRepository.save(employee);
+    public ResponseEntity<?> updateSchedule(@PathVariable Long id, @Valid @RequestBody ScheduleDto schedule) {
+        employeeService.updateSchedule(id, schedule);
 
         return ResponseEntity.ok(Map.of("message", "Escala atualizada com sucesso!"));
     }

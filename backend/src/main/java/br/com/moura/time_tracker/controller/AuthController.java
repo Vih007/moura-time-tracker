@@ -39,7 +39,7 @@ public class AuthController {
 
             Employee employee = (Employee) authentication.getPrincipal();
 
-            String token = jwtUtil.generateToken(employee.getId(), employee.getEmail());
+            String token = jwtUtil.generateToken(employee.getId(), employee.getEmail(), employee.getRole());
             return ResponseEntity.ok(new LoginResponse(
                     employee.getId(),
                     employee.getName(),

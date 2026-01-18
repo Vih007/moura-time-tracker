@@ -44,7 +44,18 @@ public class SecurityConfig {
 
                     .requestMatchers("/api/auth/**").permitAll()
 
-                    // 5. DESENVOLVIMENTO
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/employees/**").hasRole("ADMIN")
+                    .requestMatchers(
+                            "/work/employees/**",
+                            "/work/ranking/**",
+                            "/work/dashboard/**"
+                    ).hasRole("ADMIN")
+                    .requestMatchers(
+                            "/work/weekly-summary/**",
+                            "/work/report/**"
+                            ).hasAnyRole("ADMIN", "USER")
+
                     .requestMatchers("/dev/**").permitAll()
 
                     .anyRequest().authenticated()
