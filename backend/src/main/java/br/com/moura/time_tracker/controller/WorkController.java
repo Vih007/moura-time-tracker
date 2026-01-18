@@ -4,9 +4,12 @@ import br.com.moura.time_tracker.dto.ApiResponse;
 import br.com.moura.time_tracker.dto.CheckoutRequestDTO;
 import br.com.moura.time_tracker.dto.WorkRecordResponseDTO;
 import br.com.moura.time_tracker.service.WorkService;
-// Imports dos DTOs de Ranking e Gráfico que estão dentro do Service
 import br.com.moura.time_tracker.service.WorkService.ChartDataDTO;
 import br.com.moura.time_tracker.service.WorkService.RankingDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,28 +21,31 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/work") // O PDF pede as rotas começando com /work
+@RequestMapping("/work")
 @RequiredArgsConstructor
+@Tag(name = "3. Ponto Eletrônico", description = "Operações de registro de ponto, histórico e dashboard")
+@SecurityRequirement(name = "bearer-jwt")
 public class WorkController {
 
     private final WorkService workService;
 
-    // --- REQUISITO 1: CHECK-IN (POST /work/checkin) ---
+    // --- REQUISITO 1: CHECK-IN ---
     @PostMapping("/checkin")
-    public ResponseEntity<ApiResponse<WorkRecordResponseDTO>> checkIn(@RequestParam Long employeeId) {
-        // Nota: Em produção, pegaremos o ID do token JWT. Mantive o param para facilitar seu teste agora.
+    @Operation(summary = "Fazer Check-in", description = "Inicia um novo turno de trabalho para o funcionário.")
+    public ResponseEntity<ApiResponse<WorkRecordResponseDTO>> checkIn(
+            @Parameter(description = "ID do funcionário (Simulado)") @RequestParam Long employeeId) {
+
         var record = workService.clockIn(employeeId);
 
-        // Convertendo para o DTO de resposta bonito
         return ResponseEntity.ok(ApiResponse.success(
-            "Check-in realizado com sucesso!",
-            // Pequena adaptação para retornar o DTO, não a entidade pura
-            workService.getMyHistory(employeeId).get(0)
+                "Check-in realizado com sucesso!",
+                workService.getMyHistory(employeeId).get(0)
         ));
     }
 
-    // --- REQUISITO 2: CHECK-OUT (POST /work/checkout) ---
+    // --- REQUISITO 2: CHECK-OUT ---
     @PostMapping("/checkout")
+    @Operation(summary = "Fazer Check-out", description = "Encerra o turno atual. Exige motivo e detalhes se for 'Outros'.")
     public ResponseEntity<ApiResponse<WorkRecordResponseDTO>> checkOut(
             @RequestParam Long employeeId,
             @RequestBody CheckoutRequestDTO request) {
@@ -47,13 +53,14 @@ public class WorkController {
         workService.clockOut(employeeId, request);
 
         return ResponseEntity.ok(ApiResponse.success(
-            "Check-out realizado com sucesso!",
-            null // Não precisa retornar dados no checkout se não quiser
+                "Check-out realizado com sucesso!",
+                null
         ));
     }
 
-    // --- REQUISITO 3: LISTAGEM ADMIN (GET /work/list) ---
+    // --- REQUISITO 3: LISTAGEM ADMIN ---
     @GetMapping("/list")
+    @Operation(summary = "Listagem Geral (Admin)", description = "Lista paginada de todos os registros de ponto com filtros.")
     public ResponseEntity<ApiResponse<Page<WorkRecordResponseDTO>>> listAll(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String date,
@@ -66,28 +73,25 @@ public class WorkController {
         return ResponseEntity.ok(ApiResponse.success("Lista recuperada", result));
     }
 
-    // --- FUNCIONALIDADES EXTRAS (Dashboard & Ranking) ---
-
-    // Histórico do próprio funcionário
+    // --- FUNCIONALIDADES EXTRAS ---
     @GetMapping("/my-history")
+    @Operation(summary = "Meu Histórico", description = "Retorna todo o histórico de pontos do funcionário logado.")
     public ResponseEntity<ApiResponse<List<WorkRecordResponseDTO>>> getMyHistory(@RequestParam Long employeeId) {
         return ResponseEntity.ok(ApiResponse.success(
-            "Histórico pessoal recuperado",
-            workService.getMyHistory(employeeId)
+                "Histórico pessoal recuperado",
+                workService.getMyHistory(employeeId)
         ));
     }
 
-    // Gráfico Semanal (Mantido!)
     @GetMapping("/weekly-summary")
+    @Operation(summary = "Resumo Semanal (Gráfico)", description = "Dados consolidados para o gráfico de produtividade.")
     public ResponseEntity<ChartDataDTO> getWeeklySummary() {
-        // Retorna direto o DTO simples para o gráfico funcionar fácil
         return ResponseEntity.ok(workService.getWeeklyTeamSummary());
     }
 
-    // Ranking (Mantido!)
     @GetMapping("/ranking")
+    @Operation(summary = "Ranking", description = "Lista de funcionários ordenada por horas trabalhadas.")
     public ResponseEntity<List<RankingDTO>> getRanking() {
-        // Retorna direto a lista para o componente de Ranking
         return ResponseEntity.ok(workService.getEmployeeRanking());
     }
 }

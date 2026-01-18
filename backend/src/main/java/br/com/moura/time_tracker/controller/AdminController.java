@@ -3,6 +3,9 @@ package br.com.moura.time_tracker.controller;
 import br.com.moura.time_tracker.model.Employee;
 import br.com.moura.time_tracker.repository.EmployeeRepository;
 import br.com.moura.time_tracker.service.AdminService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,19 +16,21 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
+@Tag(name = "2. Administrativo", description = "Gestão de equipe, relatórios, escalas e dashboards (Requer Role ADMIN)")
+@SecurityRequirement(name = "bearer-jwt")
 public class AdminController {
 
     private final AdminService adminService;
     private final EmployeeRepository employeeRepository;
 
-    // 1. Dashboard: Status Geral da Equipe
     @GetMapping("/dashboard")
+    @Operation(summary = "Dashboard Geral (Status)", description = "Retorna o status atual de todos os colaboradores (quem está trabalhando e quem já finalizou).")
     public ResponseEntity<?> getTeamStatus() {
         return ResponseEntity.ok(adminService.getTeamCurrentStatus());
     }
 
-    // 2. Relatórios
     @GetMapping("/report")
+    @Operation(summary = "Gerar Relatório Detalhado", description = "Busca registros de ponto filtrados por ID do funcionário e intervalo de datas.")
     public ResponseEntity<?> getReport(
             @RequestParam Long employeeId,
             @RequestParam String startDate,
@@ -34,14 +39,14 @@ public class AdminController {
         return ResponseEntity.ok(adminService.generateReport(employeeId, startDate, endDate));
     }
 
-    // 3. Gestão de Funcionários (Listagem)
     @GetMapping("/employees")
+    @Operation(summary = "Listar Funcionários", description = "Retorna a lista completa de funcionários cadastrados no sistema.")
     public ResponseEntity<List<Employee>> getAllEmployees() {
         return ResponseEntity.ok(employeeRepository.findAll());
     }
 
-    // 4. Atualizar Escala
     @PutMapping("/employees/{id}/schedule")
+    @Operation(summary = "Atualizar Escala de Trabalho", description = "Define ou atualiza os horários de entrada e saída previstos para um funcionário.")
     public ResponseEntity<?> updateSchedule(@PathVariable Long id, @RequestBody Map<String, String> schedule) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Funcionario não encontrado"));
@@ -55,12 +60,13 @@ public class AdminController {
     }
 
     @GetMapping("/weekly-summary")
+    @Operation(summary = "Gráfico Semanal", description = "Retorna os dados consolidados dos últimos 7 dias para o gráfico de produtividade da equipe.")
     public ResponseEntity<?> getWeeklySummary() {
         return ResponseEntity.ok(adminService.getWeeklyTeamSummary());
     }
 
-    // NOVO: Ranking
     @GetMapping("/ranking")
+    @Operation(summary = "Ranking de Produtividade", description = "Retorna uma lista de funcionários ordenada pelo total de horas trabalhadas na semana.")
     public ResponseEntity<?> getRanking() {
         return ResponseEntity.ok(adminService.getEmployeeRanking());
     }

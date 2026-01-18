@@ -2,6 +2,9 @@ package br.com.moura.time_tracker.controller;
 
 import br.com.moura.time_tracker.model.Employee;
 import br.com.moura.time_tracker.repository.EmployeeRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,19 +16,21 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
+@Tag(name = "2. Gestão de Funcionários", description = "Listagem e atualização de escalas (Acesso Admin)")
+@SecurityRequirement(name = "bearer-jwt")
 public class EmployeeController {
 
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 1. Listar todos os funcionários (Para o Admin ver na tabela)
     @GetMapping
+    @Operation(summary = "Listar todos", description = "Retorna a lista completa de funcionários cadastrados.")
     public ResponseEntity<List<Employee>> getAllEmployees() {
         return ResponseEntity.ok(employeeRepository.findAll());
     }
 
-    // 2. Atualizar a Escala de um Funcionário
     @PutMapping("/{id}/schedule")
+    @Operation(summary = "Atualizar Escala", description = "Define o horário de início e fim de expediente do funcionário.")
     public ResponseEntity<?> updateSchedule(@PathVariable Long id, @RequestBody Map<String, String> schedule) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
@@ -37,12 +42,12 @@ public class EmployeeController {
         if (end != null) employee.setWorkEndTime(end);
 
         employeeRepository.save(employee);
-        
+
         return ResponseEntity.ok("Escala atualizada com sucesso!");
     }
-    
-    // 3. Buscar dados de um único funcionário (Para o Dashboard do Colaborador saber sua escala)
+
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar por ID", description = "Retorna os detalhes de um funcionário específico.")
     public ResponseEntity<Employee> getEmployee(@PathVariable Long id) {
         return employeeRepository.findById(id)
                 .map(ResponseEntity::ok)
