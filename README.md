@@ -55,7 +55,7 @@ O projeto está totalmente "dockerizado", facilitando o setup do ambiente de des
 
 1. **Clonar o repositório:**
 ```bash
-git clone https://github.com/seu-usuario/moura-time-tracker.git
+git clone https://github.com/ViniciusCavalcanteSantos/moura-time-tracker.git
 cd moura-time-tracker
 
 ```
