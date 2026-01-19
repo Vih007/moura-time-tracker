@@ -38,7 +38,7 @@ O projeto está totalmente "dockerizado", facilitando o setup do ambiente de des
 
 ### Serviços:
 
-1. **time-tracker-postgres-container**: Banco de dados PostgreSQL rodando na porta `5431`.
+1. **time-tracker-postgres-container**: Banco de dados PostgreSQL rodando na porta `5432`.
 2. **time-tracker-backend**: API REST Spring Boot rodando na porta `8080`.
 3. **time-tracker-frontend**: Aplicação React servida via Nginx na porta `5173`.
 
@@ -55,14 +55,14 @@ O projeto está totalmente "dockerizado", facilitando o setup do ambiente de des
 
 1. **Clonar o repositório:**
 ```bash
-git clone https://github.com/seu-usuario/moura-time-tracker.git
+git clone https://github.com/ViniciusCavalcanteSantos/moura-time-tracker.git
 cd moura-time-tracker
 
 ```
 
 
 2. **Subir os containers:**
-Certifique-se de que as portas `5431`, `8080` e `5173` estão livres e execute:
+Certifique-se de que as portas `5432`, `8080` e `5173` estão livres e execute:
 ```bash
 docker-compose up -d
 

@@ -66,24 +66,17 @@
     font-size: 0.9rem;
     text-transform: uppercase;
     color: #94a3b8;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     letter-spacing: 0.5px;
 }
-.summary-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.8rem;
-    font-size: 0.95rem;
-    color: #334155;
-}
+
 .btn-export-pdf {
     width: 100%;
-    margin-top: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px;
+    padding: 10px;
     background-color: white;
     color: #004B8D;
     border: 1px solid #004B8D;
@@ -96,6 +89,13 @@
     background-color: #004B8D;
     color: white;
 }
+.btn-export-pdf:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #94a3b8;
+}
 
 /* --- TIMELINE --- */
 .timeline-column {
@@ -103,7 +103,7 @@
     border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
     border: 1px solid #e2e8f0;
-    overflow: hidden; /* Para o header arredondado */
+    overflow: hidden;
     min-height: 500px;
     display: flex;
     flex-direction: column;
@@ -125,22 +125,12 @@
     margin: 0;
 }
 
-.day-total-badge {
-    background: #004B8D;
-    color: white;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    box-shadow: 0 4px 6px rgba(0, 75, 141, 0.2);
-}
-
 .day-timeline-content {
     padding: 2rem;
     flex: 1;
 }
 
-/* ESTRUTURA DA TIMELINE (Vertical Flow) */
+/* Timeline Vertical */
 .timeline-vertical {
     display: flex;
     flex-direction: column;
@@ -149,21 +139,25 @@
 .timeline-row {
     display: flex;
     gap: 1.5rem;
-    /* Remove altura fixa para deixar o card expandir, mas garante min-height */
-    min-height: 80px;
+    min-height: 90px;
 }
 
-/* Coluna da Hora */
 .time-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
     width: 60px;
-    text-align: right;
     font-weight: 700;
-    color: #64748b;
-    font-size: 0.95rem;
-    padding-top: 2px; /* Alinha com o topo do card */
+    color: #334155;
+    padding-top: 4px;
 }
 
-/* Coluna do Divisor (Ponto + Linha) */
+.time-end {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
 .timeline-divider {
     display: flex;
     flex-direction: column;
@@ -176,39 +170,37 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    border: 3px solid white; /* Cria um anel branco */
-    box-shadow: 0 0 0 2px currentColor; /* Usa a cor do elemento (setada inline) */
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px currentColor;
     background-color: currentColor;
     z-index: 2;
     flex-shrink: 0;
 }
 
-/* Cores específicas dos dots para referência no CSS,
-   embora o JSX já passe inline para garantir match perfeito */
+/* Classes para cores das bolinhas (fallback se style inline falhar) */
 .dot-start { color: #10b981; }
 .dot-end { color: #ef4444; }
 .dot-lunch { color: #f59e0b; }
 .dot-break { color: #8b5cf6; }
-.dot-medical { color: #3b82f6; } /* AZUL SOLICITADO */
+.dot-medical { color: #3b82f6; }
 .dot-meeting { color: #10b981; }
 .dot-other { color: #64748b; }
 
 .line {
     width: 2px;
     background-color: #e2e8f0;
-    flex-grow: 1; /* Ocupa todo o espaço vertical restante */
-    margin-top: -2px; /* Pequeno ajuste para conectar na bolinha */
+    flex-grow: 1;
+    margin-top: -2px;
     margin-bottom: -2px;
     z-index: 1;
 }
 
-/* Coluna do Card */
 .timeline-card {
     flex: 1;
-    background: #f8fafc; /* Fallback */
+    background: #f8fafc;
     border-radius: 12px;
     padding: 1.2rem;
-    margin-bottom: 2rem; /* Espaço entre as linhas */
+    margin-bottom: 2rem;
     border-left: 5px solid #cbd5e1;
     transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -256,6 +248,33 @@
     margin-bottom: 1rem;
     color: #cbd5e1;
 }
+
+/* --- PAGINAÇÃO --- */
+.pagination-controls {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-page {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    color: #334155;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-page:not(:disabled):hover { background: #f1f5f9; border-color: #cbd5e1; color: #004B8D; }
+.page-info { font-size: 0.9rem; color: #64748b; }
 
 /* Animações */
 @keyframes fadeIn {

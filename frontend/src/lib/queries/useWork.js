@@ -2,41 +2,47 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../utils/apiFetch';
 import { toast } from 'sonner';
 
-// --- CHAVES DE CACHE ---
 export const WORK_KEYS = {
-    myHistory: ['work', 'my-history'],
+    history: ['work', 'history'],
     stats: ['work', 'stats'],
 };
 
-// --- HOOK: Obter Histórico Pessoal (e estado atual) ---
-export const useMyHistory = (employeeId) => {
+export const useWorkHistory = ({ employeeId, page = 0, size = 10, date = '' }) => {
     return useQuery({
-        queryKey: [...WORK_KEYS.myHistory, employeeId],
+        queryKey: [...WORK_KEYS.history, employeeId, page, size, date],
+
         queryFn: async () => {
-            if (!employeeId) return [];
-            // O backend retorna ApiResponse, o apiFetch já extrai o .data (que é List<WorkRecordResponseDTO>)
-            return await apiFetch(`/work/my-history?employeeId=${employeeId}`);
+            if (!employeeId) return { content: [], totalPages: 0 };
+
+            const params = new URLSearchParams();
+            params.append('employeeId', employeeId);
+            params.append('page', page.toString());
+            params.append('size', size.toString());
+
+            if (date) {
+                params.append('date', date);
+            }
+
+            return await apiFetch(`/work/list?${params.toString()}`);
         },
-        enabled: !!employeeId, // Só roda se tiver ID
-        staleTime: 1000 * 60, // Cache de 1 minuto
+
+        enabled: !!employeeId,
+        keepPreviousData: true,
+        staleTime: 1000 * 30,
     });
 };
 
-// --- HOOK: Fazer Check-in ---
 export const useCheckIn = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (employeeId) => {
-            // POST /work/checkin?employeeId=...
             return await apiFetch(`/work/checkin?employeeId=${employeeId}`, {
                 method: 'POST'
             });
         },
-        onSuccess: (data) => {
+        onSuccess: () => {
             toast.success('Ponto iniciado com sucesso!');
-            // Invalida o histórico para atualizar a lista e o estado na tela imediatamente
-            queryClient.invalidateQueries({ queryKey: WORK_KEYS.myHistory });
+            queryClient.invalidateQueries({ queryKey: WORK_KEYS.history });
         },
         onError: (error) => {
             toast.error(error.message || 'Erro ao iniciar ponto');
@@ -47,10 +53,8 @@ export const useCheckIn = () => {
 // --- HOOK: Fazer Check-out ---
 export const useCheckOut = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async ({ employeeId, reason_id, details }) => {
-            // POST /work/checkout?employeeId=... body: { reason_id, details }
             return await apiFetch(`/work/checkout?employeeId=${employeeId}`, {
                 method: 'POST',
                 body: JSON.stringify({ reason_id, details })
@@ -58,7 +62,7 @@ export const useCheckOut = () => {
         },
         onSuccess: () => {
             toast.success('Expediente finalizado!');
-            queryClient.invalidateQueries({ queryKey: WORK_KEYS.myHistory });
+            queryClient.invalidateQueries({ queryKey: WORK_KEYS.history });
         },
         onError: (error) => {
             toast.error(error.message || 'Erro ao finalizar ponto');

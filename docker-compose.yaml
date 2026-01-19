@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5431:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -29,7 +29,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Usa o nome do serviço 'postgres' e a porta interna 5432
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/time-tracker
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
@@ -39,7 +38,7 @@ services:
     build: ./frontend
     container_name: time-tracker-frontend
     ports:
-      - "5173:80" # Mapeia a porta 80 do Nginx para a 5173 local
+      - "5173:80"
     depends_on:
       - backend
     restart: always
