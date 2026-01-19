@@ -3,6 +3,9 @@ package br.com.moura.time_tracker.service;
 import br.com.moura.time_tracker.dto.CheckoutRequestDTO;
 import br.com.moura.time_tracker.dto.WorkRecordResponseDTO;
 import br.com.moura.time_tracker.enums.WorkReason;
+import br.com.moura.time_tracker.exception.DataNotFoundException;
+import br.com.moura.time_tracker.exception.MissingDetailsForOtherReasonException;
+import br.com.moura.time_tracker.exception.MultipleCheckInWithoutCheckOutException;
 import br.com.moura.time_tracker.model.Employee;
 import br.com.moura.time_tracker.model.WorkRecord;
 import br.com.moura.time_tracker.repository.EmployeeRepository;
@@ -32,11 +35,11 @@ public class WorkService {
 
     public WorkRecord clockIn(UUID employeeId) {
         if (workRecordRepository.findByEmployeeIdAndCheckOutTimeIsNull(employeeId).isPresent()) {
-            throw new RuntimeException("Não é permitido dois check-ins sem check-out");
+            throw new MultipleCheckInWithoutCheckOutException("Não é permitido dois check-ins sem check-out");
         }
 
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
+                .orElseThrow(() -> new DataNotFoundException("Funcionário não encontrado"));
 
         WorkRecord newEntry = WorkRecord.builder()
                 .employee(employee)
@@ -49,13 +52,13 @@ public class WorkService {
     // 2. Check-out
     public WorkRecord clockOut(UUID employeeId, CheckoutRequestDTO request) {
         WorkRecord entry = workRecordRepository.findByEmployeeIdAndCheckOutTimeIsNull(employeeId)
-                .orElseThrow(() -> new RuntimeException("Não há turno aberto para finalizar!"));
+                .orElseThrow(() -> new DataNotFoundException("Não há turno aberto para finalizar!"));
 
         WorkReason reason = WorkReason.fromCode(request.getReason_id());
 
         if (reason == WorkReason.OTHER) {
             if (request.getDetails() == null || request.getDetails().trim().isEmpty()) {
-                throw new RuntimeException("Para o motivo 'Outros', o campo 'details' é obrigatório.");
+                throw new MissingDetailsForOtherReasonException("Para o motivo 'Outros', o campo 'details' é obrigatório.");
             }
         }
 

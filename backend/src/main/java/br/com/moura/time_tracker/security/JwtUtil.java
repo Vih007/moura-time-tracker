@@ -1,6 +1,7 @@
 package br.com.moura.time_tracker.security;
 
 import br.com.moura.time_tracker.dto.JWTUserData;
+import br.com.moura.time_tracker.exception.AuthenticationException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
@@ -51,7 +52,7 @@ public class JwtUtil {
                     )
             );
         } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Token inválido ou expirado", exception);
+            throw new AuthenticationException("Token inválido ou expirado");
         }
     }
 }

@@ -66,10 +66,38 @@ public class GlobalExceptionHandler {
     ) {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())
-                .message("Recurso não encontrado")
+                .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(MissingDetailsForOtherReasonException.class)
+    public ResponseEntity<ErrorResponse> handleMissingDetailsForOtherReasonException(
+            DataNotFoundException ex,
+            WebRequest request
+    ) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(MultipleCheckInWithoutCheckOutException.class)
+    public ResponseEntity<ErrorResponse> handleMultipleCheckInWithoutCheckOutException(
+            DataNotFoundException ex,
+            WebRequest request
+    ) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 }

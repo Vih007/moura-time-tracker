@@ -1,5 +1,6 @@
 package br.com.moura.time_tracker.controller;
 
+import br.com.moura.time_tracker.exception.DataNotFoundException;
 import br.com.moura.time_tracker.model.Employee;
 import br.com.moura.time_tracker.repository.EmployeeRepository;
 import br.com.moura.time_tracker.security.JwtUtil;
@@ -28,7 +29,7 @@ public class DevController {
     @SecurityRequirements()
     public ResponseEntity<?> getAdminToken() {
         Employee admin = employeeRepository.findByEmail("admin@moura.com")
-                .orElseThrow(() -> new RuntimeException("Admin não encontrado no banco"));
+                .orElseThrow(() -> new DataNotFoundException("Admin não encontrado no banco"));
 
         String token = jwtUtil.generateToken(admin.getId(), admin.getEmail(), admin.getRole());
 
@@ -40,7 +41,7 @@ public class DevController {
     @SecurityRequirements()
     public ResponseEntity<?> getUserToken() {
         Employee user = employeeRepository.findByEmail("joao@moura.com")
-                .orElseThrow(() -> new RuntimeException("João não encontrado no banco"));
+                .orElseThrow(() -> new DataNotFoundException("João não encontrado no banco"));
 
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole());
 

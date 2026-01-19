@@ -17,11 +17,6 @@ spring:
   flyway:
     enabled: true
 
-  security:
-    user:
-      name: disabled
-      password: disabled
-
 server:
   port: 8080
 
