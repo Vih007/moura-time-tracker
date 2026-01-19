@@ -10,6 +10,7 @@ import br.com.moura.time_tracker.model.Employee;
 import br.com.moura.time_tracker.model.WorkRecord;
 import br.com.moura.time_tracker.repository.EmployeeRepository;
 import br.com.moura.time_tracker.repository.WorkRecordRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ public class WorkService {
     public record ChartDataDTO(List<String> categories, List<Double> series) {}
 
     // 1. Check-in
+    @Transactional
     public WorkRecord clockIn(UUID employeeId) {
         if (workRecordRepository.findByEmployeeIdAndCheckOutTimeIsNull(employeeId).isPresent()) {
             throw new MultipleCheckInWithoutCheckOutException("Não é permitido dois check-ins sem check-out");
@@ -51,6 +53,7 @@ public class WorkService {
     }
 
     // 2. Check-out
+    @Transactional
     public WorkRecord clockOut(UUID employeeId, CheckoutRequestDTO request) {
         WorkRecord entry = workRecordRepository.findByEmployeeIdAndCheckOutTimeIsNull(employeeId)
                 .orElseThrow(() -> new DataNotFoundException("Não há turno aberto para finalizar!"));
