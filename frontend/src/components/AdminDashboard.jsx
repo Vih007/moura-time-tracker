@@ -13,7 +13,6 @@ import './Dashboard.css';
 import { formatSecondsToTime } from '../utils/timeUtils';
 import { apiFetch } from '../utils/apiFetch';
 
-// Novos Hooks
 import {
     useTeamStatus,
     useEmployees,
@@ -25,24 +24,18 @@ import {
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
 
-    // --- REACT QUERY HOOKS ---
     const { data: teamStatusRaw = [], isLoading: loadingOverview } = useTeamStatus();
     const { data: employees = [] } = useEmployees();
-    const { data: rankingData = [] } = useRanking(); // <--- Hook do Ranking
+    const { data: rankingData = [] } = useRanking();
 
-    // Hooks de Mutação
     const updateScheduleMutation = useUpdateSchedule();
     const generateReportMutation = useGenerateReport();
 
-    // --- ESTADOS LOCAIS ---
     const [showRanking, setShowRanking] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [tempSchedule, setTempSchedule] = useState({ start: '', end: '' });
-
-    // Estado do Gráfico
     const [chartData, setChartData] = useState({ categories: [], series: [] });
 
-    // Carregar dados do gráfico ao montar
     React.useEffect(() => {
         apiFetch('/admin/weekly-summary')
             .then(data => {
@@ -54,7 +47,6 @@ const AdminDashboard = () => {
             .catch(err => console.error("Erro gráfico", err));
     }, []);
 
-    // Relatórios
     const [reportFilters, setReportFilters] = useState({
         employeeId: '',
         startDate: new Date().toISOString().split('T')[0],
@@ -62,7 +54,6 @@ const AdminDashboard = () => {
     });
     const [reportData, setReportData] = useState([]);
 
-    // --- TRANSFORMERS ---
     const { teamHistory, stats } = useMemo(() => {
         const formattedHistory = teamStatusRaw.map(entry => ({
             id: entry.id,
@@ -80,7 +71,6 @@ const AdminDashboard = () => {
         return { teamHistory: formattedHistory, stats: { activeNow, totalEntries } };
     }, [teamStatusRaw]);
 
-    // --- ACTIONS ---
     const handleLogout = () => {
         localStorage.clear();
         window.location.href = '/';
@@ -119,24 +109,34 @@ const AdminDashboard = () => {
 
     const handleDownloadPDF = () => {
         if (!reportData.length) return toast.warning("Gere o relatório primeiro.");
+        
+        const selectedId = reportFilters.employeeId;
+        const selectedEmployee = employees.find(e => String(e.id) === String(selectedId));
+        const empName = selectedEmployee ? selectedEmployee.name : "Não Identificado";
+
         const doc = new jsPDF();
-        const empName = employees.find(e => e.id === Number(reportFilters.employeeId))?.name || "Relatório";
         doc.setFontSize(18);
         doc.setTextColor(0, 75, 141);
-        doc.text("Relatório de Ponto - Admin", 14, 22);
+        doc.text("Relatório de Ponto - MouraTech", 14, 22);
+        
         doc.setFontSize(12);
         doc.setTextColor(50);
         doc.text(`Colaborador: ${empName}`, 14, 32);
+        
+        const dataInicio = new Date(reportFilters.startDate).toLocaleDateString('pt-BR');
+        const dataFim = new Date(reportFilters.endDate).toLocaleDateString('pt-BR');
+        doc.text(`Período: ${dataInicio} até ${dataFim}`, 14, 38);
+
         autoTable(doc, {
             head: [['Data', 'Entrada', 'Saída', 'Duração']],
             body: reportData.map(r => [r.date, r.start, r.end, r.durationLabel]),
-            startY: 40,
+            startY: 45,
             headStyles: { fillColor: [0, 75, 141] }
         });
-        doc.save(`Relatorio_${empName}.pdf`);
+        
+        doc.save(`Relatorio_${empName.replace(/\s+/g, '_')}.pdf`);
     };
 
-    // --- VIEWS ---
     const OverviewView = () => (
         <div className="dashboard-grid fade-in-up">
             <div className="left-column">
@@ -176,7 +176,6 @@ const AdminDashboard = () => {
 
                     <div style={{ flex: 1, width: '100%', minHeight: '220px', overflowY: 'auto' }}>
                         {showRanking ? (
-                            // --- RANKING RESTAURADO ---
                             <div className="ranking-list">
                                 {rankingData.length === 0 ?
                                     <p style={{textAlign:'center', color:'#999', marginTop:'50px'}}>Sem dados recentes.</p> :
@@ -201,7 +200,6 @@ const AdminDashboard = () => {
                                 }
                             </div>
                         ) : (
-                            // GRÁFICO
                             <Chart
                                 options={{
                                     chart: { type: 'area', toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
@@ -252,13 +250,15 @@ const AdminDashboard = () => {
                 <CalendarDays /> Gestão de Escala
             </h3>
             <div style={{display: 'grid', gap: '15px'}}>
-                {employees.map(emp => (
+                {employees
+                    .filter(emp => emp.role !== 'ADMIN') // <--- FILTRO APLICADO AQUI TAMBÉM
+                    .map(emp => (
                     <div key={emp.id} style={{background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px'}}>
                         <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
                             <div style={{width: '40px', height: '40px', background: '#e0f2fe', borderRadius: '50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#0284c7'}}><User size={20} /></div>
                             <div>
                                 <span style={{display:'block', fontWeight: 'bold', color: '#1e293b'}}>{emp.name}</span>
-                                <span style={{fontSize: '0.85rem', color: '#64748b'}}>{emp.role === 'ADMIN' ? 'Administrador' : 'Colaborador'}</span>
+                                <span style={{fontSize: '0.85rem', color: '#64748b'}}>Colaborador</span>
                             </div>
                         </div>
                         <div style={{display: 'flex', alignItems: 'center', gap: '20px', background: '#f8fafc', padding: '10px 20px', borderRadius: '8px'}}>
@@ -267,7 +267,6 @@ const AdminDashboard = () => {
                                     <input type="time" value={tempSchedule.start} onChange={(e) => setTempSchedule({...tempSchedule, start: e.target.value})} style={{border: '1px solid #cbd5e1', borderRadius: '4px', padding: '2px 5px'}}/>
                                     <span>-</span>
                                     <input type="time" value={tempSchedule.end} onChange={(e) => setTempSchedule({...tempSchedule, end: e.target.value})} style={{border: '1px solid #cbd5e1', borderRadius: '4px', padding: '2px 5px'}}/>
-
                                     <button onClick={() => handleSaveSchedule(emp.id)} disabled={updateScheduleMutation.isPending} style={{border:'none', background:'none', cursor:'pointer', color:'green'}}>
                                         {updateScheduleMutation.isPending ? <Loader2 className="spin-slow" size={20}/> : <Save size={20}/>}
                                     </button>
@@ -296,7 +295,10 @@ const AdminDashboard = () => {
                     <label style={{fontSize: '0.8rem', fontWeight: 'bold', color: '#64748b'}}>Colaborador</label>
                     <select className="custom-select" value={reportFilters.employeeId} onChange={(e) => setReportFilters({...reportFilters, employeeId: e.target.value})} style={{padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%'}}>
                         <option value="">Selecione...</option>
-                        {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+                        {employees
+                            .filter(emp => emp.role !== 'ADMIN')
+                            .map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)
+                        }
                     </select>
                 </div>
                 <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
