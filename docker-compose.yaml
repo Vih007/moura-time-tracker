@@ -32,6 +32,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/time-tracker
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      SECRET: your-secret-key-change-in-production-moura-tech-2026
     restart: always
 
   frontend:

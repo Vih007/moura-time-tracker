@@ -3,9 +3,9 @@ spring:
     name: time-tracker
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/time-tracker
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -21,7 +21,7 @@ server:
   port: 8080
 
 jwt:
-  secret: your-secret-key-change-in-production-moura-tech-2026
+  secret: ${SECRET}
   expiration: 86400
 
 springdoc:
