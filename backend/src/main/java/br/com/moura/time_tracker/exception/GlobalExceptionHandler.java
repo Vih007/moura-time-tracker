@@ -1,6 +1,8 @@
 package br.com.moura.time_tracker.exception;
 
 import br.com.moura.time_tracker.dto.ErrorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,16 +16,20 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(AuthenticationException.class )
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
             AuthenticationException ex,
             WebRequest request) {
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
-                .path(request.getDescription(false).replace("uri=", ""))
+                .path(getPath(request))
                 .build();
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
@@ -31,6 +37,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,
             WebRequest request) {
+
         String message = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -41,22 +48,10 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(message)
                 .timestamp(LocalDateTime.now())
-                .path(request.getDescription(false).replace("uri=", ""))
+                .path(getPath(request))
                 .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(
-            Exception ex,
-            WebRequest request) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message("Erro interno do servidor")
-                .timestamp(LocalDateTime.now())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(DataNotFoundException.class)
@@ -68,36 +63,60 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
-                .path(request.getDescription(false).replace("uri=", ""))
+                .path(getPath(request))
                 .build();
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     @ExceptionHandler(MissingDetailsForOtherReasonException.class)
     public ResponseEntity<ErrorResponse> handleMissingDetailsForOtherReasonException(
-            DataNotFoundException ex,
+            MissingDetailsForOtherReasonException ex,
             WebRequest request
     ) {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
-                .path(request.getDescription(false).replace("uri=", ""))
+                .path(getPath(request))
                 .build();
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(MultipleCheckInWithoutCheckOutException.class)
     public ResponseEntity<ErrorResponse> handleMultipleCheckInWithoutCheckOutException(
-            DataNotFoundException ex,
+            MultipleCheckInWithoutCheckOutException ex,
             WebRequest request
     ) {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
-                .path(request.getDescription(false).replace("uri=", ""))
+                .path(getPath(request))
                 .build();
+
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGlobalException(
+            Exception ex,
+            WebRequest request) {
+
+        logger.error("Unhandled exception: {}", ex.getMessage(), ex);
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .message(ex.getMessage() != null ? ex.getMessage() : "Erro interno do servidor")
+                .timestamp(LocalDateTime.now())
+                .path(getPath(request))
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    private String getPath(WebRequest request) {
+        return request.getDescription(false).replace("uri=", "");
     }
 }
