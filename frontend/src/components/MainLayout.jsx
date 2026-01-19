@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
-import { LayoutDashboard, LogOut, History as HistoryIcon } from 'lucide-react';
+import {LayoutDashboard, LogOut, History as HistoryIcon, Menu, X, CalendarDays} from 'lucide-react'; // Adicionado Menu e X
 import mouraLogo from '../assets/moura-logo.png';
 import './Dashboard.css';
 
 import Dashboard from './Dashboard';
 import History from './History';
 import { getShiftConfig, calculateSecondsSince } from '../utils/timeUtils';
-
-// IMPORTS ATUALIZADOS
 import { useWorkHistory, useCheckIn, useCheckOut } from '../lib/queries/useWork';
+import Schedule from "./Schedule.jsx";
 
 const MainLayout = ({ onLogout }) => {
     const [activeTab, setActiveTab] = useState('dashboard');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const SHIFT_CONFIG = getShiftConfig();
 
     const [user] = useState(() => {
@@ -20,8 +20,6 @@ const MainLayout = ({ onLogout }) => {
         return stored ? JSON.parse(stored) : null;
     });
 
-    // --- BUSCA GLOBAL (Para o Timer) ---
-    // Busca os 20 últimos para identificar se tem turno aberto recentemente
     const { data: historyPage } = useWorkHistory({
         employeeId: user?.id,
         page: 0,
@@ -29,7 +27,6 @@ const MainLayout = ({ onLogout }) => {
     });
 
     const recentRecords = historyPage?.content || [];
-
     const checkInMutation = useCheckIn();
     const checkOutMutation = useCheckOut();
 
@@ -45,27 +42,12 @@ const MainLayout = ({ onLogout }) => {
 
     useEffect(() => {
         let interval;
-
         const tick = () => {
             if (activeShift?.checkin_time && activeShift?.date) {
                 const currentSeconds = calculateSecondsSince(activeShift.date, activeShift.checkin_time);
                 setElapsedTime(currentSeconds);
-
-                const halfTime = SHIFT_CONFIG.seconds / 2;
-
-                if (currentSeconds === halfTime && !audioFlags.current.halfPlayed) {
-                    playNotificationSound();
-                    toast.info('Metade do turno atingida.');
-                    audioFlags.current.halfPlayed = true;
-                }
-                if (currentSeconds === SHIFT_CONFIG.seconds && !audioFlags.current.fullPlayed) {
-                    new Audio('/sounds/successfull.mp3').play().catch(() => {});
-                    toast.success('Meta diária alcançada!');
-                    audioFlags.current.fullPlayed = true;
-                }
             } else {
                 setElapsedTime(0);
-                audioFlags.current = { halfPlayed: false, fullPlayed: false };
             }
         };
 
@@ -75,10 +57,8 @@ const MainLayout = ({ onLogout }) => {
         } else {
             if (!activeShift) setElapsedTime(0);
         }
-
         return () => clearInterval(interval);
     }, [workStatus, activeShift, SHIFT_CONFIG]);
-
 
     const handleStartTimer = () => {
         if (!user?.id) return;
@@ -96,25 +76,64 @@ const MainLayout = ({ onLogout }) => {
         });
     };
 
+    const handleNavClick = (tab) => {
+        setActiveTab(tab);
+        setIsMobileMenuOpen(false);
+    };
+
     return (
         <div className="dashboard-container">
             <Toaster position="top-right" richColors />
 
-            <aside className="sidebar">
+            {/* BOTÃO MOBILE HAMBURGUER */}
+            <button
+                className="mobile-menu-btn"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+                <Menu size={24} />
+            </button>
+
+            {/* OVERLAY ESCURO (Apenas Mobile) */}
+            {isMobileMenuOpen && (
+                <div className="sidebar-overlay" onClick={() => setIsMobileMenuOpen(false)} />
+            )}
+
+            {/* SIDEBAR (Com classe condicional para mobile) */}
+            <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
                 <div className="sidebar-header">
-                    <img src={mouraLogo} alt="Moura" className="sidebar-logo" />
-                    <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
-                        Moura<span style={{ color: '#FFC700' }}>Tech</span>
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <img src={mouraLogo} alt="Moura" className="sidebar-logo" />
+                        <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
+                            Moura<span style={{ color: '#FFC700' }}>Tech</span>
+                        </span>
+                    </div>
+                    {/* Botão X para fechar dentro da sidebar no mobile */}
+                    <button className="mobile-close-btn" onClick={() => setIsMobileMenuOpen(false)}>
+                        <X size={24} />
+                    </button>
                 </div>
+
                 <nav>
-                    <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+                    <div
+                        className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                        onClick={() => handleNavClick('dashboard')}
+                    >
                         <LayoutDashboard size={20} /> <span>Painel</span>
                     </div>
-                    <div className={`nav-item ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
+                    <div
+                        className={`nav-item ${activeTab === 'schedule' ? 'active' : ''}`}
+                        onClick={() => handleNavClick('schedule')}
+                    >
+                        <CalendarDays size={20} /> <span>Escala</span>
+                    </div>
+                    <div
+                        className={`nav-item ${activeTab === 'history' ? 'active' : ''}`}
+                        onClick={() => handleNavClick('history')}
+                    >
                         <HistoryIcon size={20} /> <span>Histórico</span>
                     </div>
                 </nav>
+
                 <div style={{ marginTop: 'auto' }}>
                     <button onClick={onLogout} className="nav-item" style={{ width: '100%', border: 'none', background: 'transparent', color: 'white' }}>
                         <LogOut size={20} /> <span>Sair</span>
@@ -134,9 +153,12 @@ const MainLayout = ({ onLogout }) => {
                         onCheckIn={handleStartTimer}
                         onCheckOut={handleStopTimer}
                     />
-                ) : (
-                    <History userId={user?.id} SHIFT_CONFIG={SHIFT_CONFIG} />
-                )}
+                ) : activeTab === 'schedule' ? (
+                        <Schedule />
+                    ) : (
+                        <History userId={user?.id} SHIFT_CONFIG={SHIFT_CONFIG} />
+                    )
+                }
             </main>
         </div>
     );

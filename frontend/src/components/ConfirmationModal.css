@@ -2,7 +2,7 @@
 .modal-content {
     background: white;
     width: 90%;
-    max-width: 500px;
+    max-width: 490px;
     border-radius: 24px;
     padding: 2rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -72,10 +72,9 @@
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-/* --- GRID DE MOTIVOS --- */
 .reason-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* AGORA SÃO 3 COLUNAS PARA CABER TUDO */
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 12px;
     margin-bottom: 1.5rem;
 }
@@ -84,7 +83,7 @@
     background: #f8fafc;
     border: 2px solid transparent;
     border-radius: 16px;
-    padding: 1rem 0.5rem; /* Padding lateral menor */
+    padding: 1rem 0.5rem;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -93,7 +92,8 @@
     justify-content: center;
     gap: 8px;
     color: #64748b;
-    min-height: 100px;
+    min-height: 110px;
+    text-align: center;
 }
 
 .reason-card:hover {
@@ -110,11 +110,10 @@
 
 .reason-label {
     font-weight: 600;
-    font-size: 0.8rem; /* Fonte um pouco menor */
-    line-height: 1.2;
+    font-size: 0.8rem;
+    line-height: 1.3;
 }
 
-/* --- CAMPO DE TEXTO (DETALHES) --- */
 .details-input-wrapper {
     margin-bottom: 1.5rem;
     animation: slideDown 0.3s ease-out;
