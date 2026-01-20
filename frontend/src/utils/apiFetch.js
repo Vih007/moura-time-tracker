@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+export const API_BASE_URL = 'https://moura-time-tracker-backend.agreeablesmoke-e6c0870a.brazilsouth.azurecontainerapps.io';
 
 export class ApiError extends Error {
     constructor(message, status) {
